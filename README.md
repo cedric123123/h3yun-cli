@@ -8,9 +8,8 @@
 
 Go 实现的氚云公有云 CLI，采用 DWS 风格的渐进命令发现、leaf Schema、profile、结构化错误及配套 Agent skills。默认连接 `https://www.h3yun.com`，源码和程序均不内置实际密钥。
 
-v0.3.0 首批吸纳：借鉴 DWS 交互，独立实现 `profile switch`（预览、备份、切回）；固定引入 go-keyring v0.2.8，macOS 会话改为 Keychain 密钥 + AES-GCM 密文，禁止静默降级明文。Windows 保持 DPAPI；Linux 仍是仅文件权限保护。来源与许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。未引入非官方网页接口，也没有获得新的扫码授权端点。
+v0.3.0 首批吸纳：借鉴 DWS 交互，独立实现 `profile switch`（预览、备份、切回）；固定引入 go-keyring v0.2.8，macOS 会话改为 Keychain 密钥 + AES-GCM 密文，禁止静默降级明文。Windows 保持 DPAPI；Linux 仍是仅文件权限保护。来源与许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
-v0.2.1 根据使用者提供的 Apifox 文档补充了机器可读 `api_contract`、写操作 `meta.warnings`、流程提交区别及 60 秒超时上限。接口对照和文档差异见 [API-CONTRACT.md](API-CONTRACT.md)。源码已复制到当前工作区，旧目录与 v0.2.0 安装包保留。
 
 ## 开始使用
 
