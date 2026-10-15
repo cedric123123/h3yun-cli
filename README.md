@@ -143,9 +143,16 @@ h3yun ops run --name workflow.approve --data '@approval.json' --dry-run
 
 Go 1.22+；依赖固定在 go.mod/go.sum，macOS Keychain 适配使用 go-keyring。运行 `go test ./... -cover`、`go vet ./...`、`go mod verify` 或 `scripts/build.ps1`（Windows）/`sh scripts/build.sh`（Mac/Linux）。Mac/Linux 仅交叉编译；OAuth 用本地模拟服务验证，未用真实氚云账号联调。Keychain 单测使用模拟存储，不触及系统凭据。见 [VALIDATION.md](VALIDATION.md)。
 
-## 依据
+## 📚 参考资料
+
+### 官方 OpenAPI 文档
 
 [官方认证](https://help.h3yun.com/contents/1005/1631.html)、[查询单条](https://help.h3yun.com/api/preview/1/1006/1632)、[批量查询](https://help.h3yun.com/contents/1007/1633.html)、[创建单条](https://help.h3yun.com/contents/1008/1634.html)、[批量创建](https://help.h3yun.com/api/preview/1/1009/1635)、[更新](https://help.h3yun.com/contents/1010/1636.html)、[删除](https://help.h3yun.com/api/preview/1/1011/1637)、[上传](https://help.h3yun.com/contents/1012/1638.html)、[下载](https://help.h3yun.com/api/preview/1/1013/1639)、[自定义接口](https://help.h3yun.com/239700988/)。
+
+### 氚云开发者扩展文档（专业版）
+
+- [氚专开发者扩展文档](https://h3yunpro.github.io/docs/language/)：面向氚云专业版二次开发的完整文档，涵盖在线编程（.NET Framework 4.6.2 后端 + ES5 前端）、前后端 API、数据库表结构、代码示例及第三方系统集成。注意：站内「后端 API」是在线编程的 C# 对象模型，与 OpenAPI 是两套体系。
+- [氚云专业版 OpenAPI 文档（Apifox）](https://h3yun-pro-doc-openapi.apifox.cn/)：本 CLI 封装的 OpenAPI 接口的交互式文档，可直接在线调试。
 
 DWS 交互参考本机 leaf Schema、auth login Help 及共享 skill；核对日期 2026-10-15。本工具不是钉钉或氚云官方 CLI。
 
