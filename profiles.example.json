@@ -1,0 +1,16 @@
+{
+  "current_profile": "sandbox",
+  "profiles": {
+    "sandbox": {
+      "base_url": "https://www.h3yun.com",
+      "engine_code_env": "H3YUN_SANDBOX_ENGINE_CODE",
+      "engine_secret_env": "H3YUN_SANDBOX_ENGINE_SECRET"
+    },
+    "production": {
+      "base_url": "https://www.h3yun.com",
+      "read_only": true,
+      "engine_code_env": "H3YUN_PRODUCTION_ENGINE_CODE",
+      "engine_secret_env": "H3YUN_PRODUCTION_ENGINE_SECRET"
+    }
+  }
+}

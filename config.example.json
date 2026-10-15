@@ -1,0 +1,9 @@
+{
+  "base_url": "https://www.h3yun.com",
+  "timeout": "45s",
+  "read_only": false,
+  "allow_http": false,
+  "invoke_path": "/OpenApi/Invoke",
+  "upload_path": "/OpenApi/UploadAttachment",
+  "download_path": "/Api/DownloadBizObjectFile"
+}

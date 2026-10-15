@@ -1,0 +1,8 @@
+{
+  "FromRowNum": 0,
+  "ToRowNum": 100,
+  "RequireCount": true,
+  "ReturnItems": [],
+  "SortByCollection": [],
+  "Matcher": {"Type": "And", "Matchers": []}
+}

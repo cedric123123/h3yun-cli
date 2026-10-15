@@ -1,0 +1,10 @@
+/dist/
+/.env
+/.env.*
+/config.local.json
+/operations.local.json
+*.test
+coverage.out
+.h3yun-config-backup-*
+*.session
+*.lock/
