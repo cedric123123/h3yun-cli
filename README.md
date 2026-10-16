@@ -1,25 +1,44 @@
 # 氚云 Agent CLI
 
 [![Release](https://img.shields.io/github/v/release/cedric123123/h3yun-cli?label=%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC)](https://github.com/cedric123123/h3yun-cli/releases)
+[![CI](https://github.com/cedric123123/h3yun-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/cedric123123/h3yun-cli/actions/workflows/ci.yml)
 [![Platform](https://img.shields.io/badge/%E5%B9%B3%E5%8F%B0-Windows%20%7C%20macOS%20%7C%20Linux-blue)]()
 [![Go](https://img.shields.io/badge/Go-1.22%2B-00ADD8?logo=go&logoColor=white)]()
+[![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
 
-> **氚云 Agent CLI** 是一个用 Go 实现的氚云（h3yun.com）公有云命令行工具，专为 AI Agent 与自动化场景设计。采用 DWS 风格的渐进式命令发现（`schema`）、leaf Schema 自描述契约、多 profile 多环境管理、结构化错误码，并附带可直接使用的 Agent Skills。所有输出均为 JSON envelope（`ok/data/error/meta`），无需解析人读文本即可集成。
-
-Go 实现的氚云公有云 CLI，采用 DWS 风格的渐进命令发现、leaf Schema、profile、结构化错误及配套 Agent skills。默认连接 `https://www.h3yun.com`，源码和程序均不内置实际密钥。
+> **氚云 Agent CLI** 是一个用 Go 实现的氚云（h3yun.com）公有云命令行工具，专为 AI Agent 与自动化场景设计。采用 DWS 风格的渐进式命令发现（`schema`）、leaf Schema 自描述契约、多 profile 多环境管理、结构化错误码，并附带可直接使用的 Agent Skills。所有输出均为 JSON envelope（`ok/data/error/meta`），无需解析人读文本即可集成。默认连接 `https://www.h3yun.com`，源码和程序均不内置实际密钥。
 
 v0.3.0 首批吸纳：借鉴 DWS 交互，独立实现 `profile switch`（预览、备份、切回）；固定引入 go-keyring v0.2.8，macOS 会话改为 Keychain 密钥 + AES-GCM 密文，禁止静默降级明文。Windows 保持 DPAPI；Linux 仍是仅文件权限保护。来源与许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
+v0.3.1 安全加固：发布程序改用 Go 1.27.2 构建，修复公开模块路径，增加可追溯 commit、三平台 CI、漏洞扫描、标准平台包及校验和。
+
+## 安装
+
+推荐从 [GitHub Releases](https://github.com/cedric123123/h3yun-cli/releases/latest) 下载对应系统的软件包，并用同一 Release 中的 `SHA256SUMS` 校验。源码仓库不提交 `dist/` 二进制目录。
+
+已安装 Go 1.22+ 的使用者也可以直接安装：
+
+```sh
+go install github.com/cedric123123/h3yun-cli/cmd/h3yun@latest
+```
+
+从源码构建：
+
+```sh
+go build -o h3yun ./cmd/h3yun
+```
+
+Windows 可运行 `scripts/build.ps1`，macOS/Linux 可运行 `sh scripts/build.sh`，生成四平台发行程序。
 
 ## 开始使用
 
-Windows 程序：`dist/h3yun.exe`；Linux amd64：`dist/h3yun-linux-amd64`；macOS Apple Silicon：`dist/h3yun-darwin-arm64`；macOS Intel：`dist/h3yun-darwin-amd64`。Unix 程序运行前添加执行权限。下面从项目目录执行；加入 PATH 后可直接用 `h3yun`。Mac 安装和自检见 [MACOS.md](MACOS.md)。
+以下示例假定程序已经加入 PATH；Windows 也可以使用软件包中的 `h3yun.exe`。Unix 程序运行前添加执行权限。Mac 安装和自检见 [MACOS.md](MACOS.md)。
 
 ```powershell
-.\dist\h3yun.exe schema
-.\dist\h3yun.exe schema records --compact
-.\dist\h3yun.exe schema "records create" --compact --format json
-.\dist\h3yun.exe records create --schema YOUR_SCHEMA --data '@examples/record.json' --dry-run
+h3yun schema
+h3yun schema records --compact
+h3yun schema "records create" --compact --format json
+h3yun records create --schema YOUR_SCHEMA --data '@examples/record.json' --dry-run
 ```
 
 根 Schema 仅显示分组；组级显示命令摘要；leaf 显示参数、effect、risk、confirmation、constraints。`schema --all` 用于全量审计。Schema 和执行参数来自同一注册表。
@@ -32,9 +51,9 @@ Windows 程序：`dist/h3yun.exe`；Linux amd64：`dist/h3yun-linux-amd64`；mac
 $env:H3YUN_ENGINE_CODE = '<使用者自己的 EngineCode>'
 # PowerShell 7，由使用者输入；无交互 Agent 由宿主注入环境变量。
 $env:H3YUN_ENGINE_SECRET = Read-Host 'EngineSecret' -MaskInput
-.\dist\h3yun.exe auth status
-.\dist\h3yun.exe doctor
-.\dist\h3yun.exe records list --schema YOUR_SCHEMA --limit 100
+h3yun auth status
+h3yun doctor
+h3yun records list --schema YOUR_SCHEMA --limit 100
 ```
 
 `auth status` 只检查本地凭据/会话；`doctor` 检查配置和 CA，均不验证真实权限。CLI 不读取 `.env`，不接受命令行 EngineSecret，不保存环境变量密钥。
@@ -141,7 +160,7 @@ h3yun ops run --name workflow.approve --data '@approval.json' --dry-run
 
 随包提供 skills/h3yun-shared、skills/h3yun-records、skills/h3yun-files，由使用者复制到 Agent 的 skills 目录。本次未全局安装。技能参考 DWS 渐进发现习惯，按 skill-creator 规范组织。详见 [AGENT.md](AGENT.md)。
 
-Go 1.22+；依赖固定在 go.mod/go.sum，macOS Keychain 适配使用 go-keyring。运行 `go test ./... -cover`、`go vet ./...`、`go mod verify` 或 `scripts/build.ps1`（Windows）/`sh scripts/build.sh`（Mac/Linux）。Mac/Linux 仅交叉编译；OAuth 用本地模拟服务验证，未用真实氚云账号联调。Keychain 单测使用模拟存储，不触及系统凭据。见 [VALIDATION.md](VALIDATION.md)。
+Go 1.22+；正式发行程序使用带安全修复的 Go 1.27.2 构建。依赖固定在 go.mod/go.sum，macOS Keychain 适配使用 go-keyring。运行 `go test ./... -cover`、`go vet ./...`、`go mod verify` 或 `scripts/build.ps1`（Windows）/`sh scripts/build.sh`（Mac/Linux）。OAuth 用本地模拟服务验证，未用真实氚云账号联调。Keychain 单测使用模拟存储，不触及系统凭据。完整用例和实际执行状态分别见 [TEST-CASES.md](TEST-CASES.md) 与 [TEST-RESULTS.md](TEST-RESULTS.md)，构建记录见 [VALIDATION.md](VALIDATION.md)。
 
 ## 📚 参考资料
 
@@ -165,8 +184,8 @@ DWS 交互参考本机 leaf Schema、auth login Help 及共享 skill；核对日
 3. **退出码**（0/2/3/4/5/6）与预期行为的差异
 4. **运行环境**：操作系统、CLI 版本（`h3yun --help` 顶部可见）
 
-> ⚠️ 安全提醒：Issue 内容是公开的，请勿在反馈中粘贴真实凭据、表单业务数据或下载链接中的签名参数。涉及敏感问题时可先描述现象，由维护者引导私下提供细节。也欢迎 PR！
+> ⚠️ 安全提醒：Issue 内容是公开的，请勿在反馈中粘贴真实凭据、表单业务数据或下载链接中的签名参数。安全问题请按 [SECURITY.md](SECURITY.md) 使用 GitHub 私密漏洞报告。也欢迎 PR！
 
 ## 📄 许可
 
-项目依赖的来源与许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 及 [licenses/](licenses/) 目录。
+本项目使用 [Apache License 2.0](LICENSE)。项目依赖的来源与许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 及 [licenses/](licenses/) 目录。

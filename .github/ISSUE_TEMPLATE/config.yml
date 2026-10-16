@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 私密安全漏洞报告
+    url: https://github.com/cedric123123/h3yun-cli/security/advisories/new
+    about: 密钥泄漏或安全漏洞请通过私密渠道报告，不要创建公开 Issue。

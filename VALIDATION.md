@@ -1,4 +1,18 @@
-# v0.3.0 验证记录
+# v0.3.1 验证记录
+
+日期：2026-10-16。本地构建环境：Windows 11 amd64，Go 1.27.2。
+
+- `go test ./... -count=1 -cover`、`go vet ./...`、`go mod verify` 全部通过。
+- 本地语句覆盖率：CLI 85.9%，HTTP 客户端 82.9%，OAuth/存储 73.4%，本地状态 83.3%。
+- `govulncheck v1.9.0 ./...` 使用 Go 1.27.2 和 2026-10-08 漏洞库扫描，结果为 `No vulnerabilities found.`。
+- Windows amd64、Linux amd64、macOS arm64、macOS amd64 四个 CGO=0 程序构建成功；版本回执为 0.3.1，并包含 Git commit。
+- 打包程序成功生成源码 ZIP、Windows ZIP、Linux tar.gz、两个 macOS tar.gz 和 `SHA256SUMS`；本地逐项校验通过，tar 内程序权限为可执行。
+- 模块路径已改为 `github.com/cedric123123/h3yun-cli`，用于 Release 后的标准 `go install`。
+- CI 将在 Windows、Linux、macOS 重跑测试；Linux 额外执行 race detector。Release 工作流只接受与源码版本一致的标签，并检查干净构建的 VCS revision 与 `vcs.modified=false` 后发布。
+
+限制：本地没有真实氚云凭据，未做线上读写、权限或审批联调；macOS/Linux 运行验证、Linux race detector 和干净标签发行物 metadata 由 GitHub Actions 完成。发布包最终 SHA-256 以对应 GitHub Release 的 `SHA256SUMS` 为准。
+
+## v0.3.0 历史验证记录
 
 日期：2026-10-15。构建环境：Windows amd64，Go 1.27.0。
 

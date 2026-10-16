@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"h3yun-cli/internal/auth"
-	"h3yun-cli/pkg/h3yun"
+	"github.com/cedric123123/h3yun-cli/internal/auth"
+	"github.com/cedric123123/h3yun-cli/pkg/h3yun"
 )
 
 type secretKey struct{}

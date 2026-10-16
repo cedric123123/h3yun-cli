@@ -21,7 +21,7 @@ sh scripts/smoke.sh "$PWD/dist/h3yun-darwin-arm64"
 
 Intel 把文件名换成 h3yun-darwin-amd64。也可复制到自己维护的 PATH 目录并命名 h3yun；本项目不自动改系统 PATH。二进制未进行 Apple Developer ID 签名或 notarization，macOS 可能要求使用者按系统提示批准运行；不应宣称已完成签名分发。
 
-单独的 `h3yun-v0.3.0-darwin-arm64.tar.gz` / `h3yun-v0.3.0-darwin-amd64.tar.gz` 保存执行权限。将对应包解压到新目录后，程序位于根目录的 `h3yun`，直接运行 `./h3yun version` 以及 `sh scripts/smoke.sh "$PWD/h3yun"`。源码和四平台程序一起放在完整 ZIP 包中。
+单独的 `h3yun-v0.3.1-darwin-arm64.tar.gz` / `h3yun-v0.3.1-darwin-amd64.tar.gz` 保存执行权限。将对应包解压到新目录后，程序位于根目录的 `h3yun`，直接运行 `./h3yun version` 以及 `sh scripts/smoke.sh "$PWD/h3yun"`。源码和四平台程序一起放在完整 ZIP 包中。
 
 ## 凭据与多组织
 

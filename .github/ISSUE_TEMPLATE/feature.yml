@@ -1,0 +1,24 @@
+name: 功能建议
+description: 建议新的 CLI 或 Agent 能力
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 使用场景
+      description: 说明 Agent 要完成的业务目标和当前阻碍。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议方案
+      description: 如涉及接口，请附公开文档链接或已脱敏的契约说明。
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: 风险与副作用
+      description: 是否会写数据、触发审批/通知、覆盖文件或需要新增权限？

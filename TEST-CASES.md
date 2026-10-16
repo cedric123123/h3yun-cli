@@ -1,6 +1,6 @@
-# 氚云 Agent CLI v0.3.0 完整测试用例
+# 氚云 Agent CLI v0.3.1 完整测试用例
 
-文档日期：2026-10-16。适用对象：当前仓库 v0.3.0 源码及对应发行程序。共 **140 条验收用例、14 个模块**，关联现有 **43 个 Go 测试函数**（其中包含表驱动子用例）。
+文档日期：2026-10-16。适用对象：当前仓库 v0.3.1 源码及对应发行程序。共 **140 条验收用例、14 个模块**，关联现有 **43 个 Go 测试函数**（其中包含表驱动子用例）。
 
 本文件是可执行的测试设计与验收清单，不是“140 条全部通过”的报告。除第 2 节已实跑的自动回归外，以下验收用例初始状态统一为 **NOT_RUN**。自动测试关联表示有相关检查，**不等于整条用例及全部平台、边界变体已被覆盖**。测试中发现与预期不符，应记录缺陷，不修改预期来迁就现状。
 
@@ -236,7 +236,7 @@ F-RAW 示例（只用于 M/dry-run，R必须替换真实编码和 ID）：
 
 | ID / 名称 | 优先级 | 环境 | 前置差异与操作步骤 | 预期结果 | 自动关联（部分） |
 |---|---|---|---|---|---|
-| CLI-001 无凭据本地发现 | P0 | L | 清空测试进程凭据；分别执行空参数、help、version、schema、ops list（不指定映射）。 | 退出0、ok=true；version为0.3.0；不要求密钥、不发请求。 | UT-001 |
+| CLI-001 无凭据本地发现 | P0 | L | 清空测试进程凭据；分别执行空参数、help、version、schema、ops list（不指定映射）。 | 退出0、ok=true；version为0.3.1；不要求密钥、不发请求。 | UT-001 |
 | CLI-002 渐进 Schema | P0 | L | 依次执行 schema、schema records --compact、schema "records create" --compact、schema --all。 | 根只列组；组列摘要；leaf列参数；全量恰有19条已注册命令且无重名。 | UT-016 |
 | CLI-003 命令帮助同源 | P1 | L | 遍历19命令的 --help，与对应 leaf schema 对比。 | 参数、必填、类型、默认值及风险一致；删除需确认、raw条件确认、profile switch本地副作用明确。 | UT-016 |
 | CLI-004 未知命令纠错 | P1 | L | 执行 records nonexistent、unknown；执行 schema nonexistent。 | 退出2、UNKNOWN_COMMAND；hint/actions引导发现已注册命令，不联网。 | UT-016 |
@@ -418,7 +418,7 @@ F-RAW 示例（只用于 M/dry-run，R必须替换真实编码和 ID）：
 | REL-001 自动回归 | P0 | L | 执行 go test ./... -count=1 -cover，保留完整报告和环境信息。 | 所有43个测试函数通过（含子用例）；不把函数数当验收场景数；覆盖率记录各包。 | UT-001～UT-043 |
 | REL-002 静态与依赖校验 | P0 | L | 分别执行go vet ./...、go mod verify并各自检查退出码；检查go.mod/go.sum。 | 均退出0；go-keyring固定v0.2.8；无未经批准的新增依赖。 | — |
 | REL-003 四平台构建 | P0 | L | 按scripts/build.ps1或build.sh构建四目标；读取go version -m；额外交叉编译Darwin auth/cli测试。 | Windows/Linux amd64、Darwin amd64/arm64产物齐全且架构正确；CGO=0；交叉测试程序只记编译通过。 | — |
-| REL-004 发行包完整性 | P0 | L | 检查zip和两个Mac tar.gz目录、二进制hash、README/AUTH/MACOS/许可和skills；验证tar执行位。 | 与构建产物hash一致；许可证齐全；无真实凭据、缓存、锁、临时测试程序；平台说明相符。 | — |
+| REL-004 发行包完整性 | P0 | L | 检查源码包、Windows ZIP、Linux/macOS tar.gz、SHA256SUMS、二进制hash、README/AUTH/MACOS/许可和skills；验证tar执行位。 | 校验和与构建产物一致；许可证齐全；无真实凭据、缓存、锁、临时测试程序；平台说明相符。 | — |
 | REL-005 开源吸纳与授权 | P1 | L | 核对THIRD_PARTY_NOTICES.md、LICENSES及模块许可；确认DWS是设计参考而不是复制未授权源码。 | 来源、版本和许可可追溯；未把DWS token能力或未核实网页API包装成氚云授权；无遗漏必要版权文本。 | — |
 | REL-006 文档与Agent契约 | P1 | L | 逐项比对README/API-CONTRACT/AUTH/MACOS/AGENT和3个skills的命令示例与schema；核对发布包版本。 | 示例无未实现选项；风险、只读、退出码、待联调限制一致；本测试文档后续加入包时更新清单和hash，不覆盖旧包冒称未变。 | UT-013、UT-016 |
 
