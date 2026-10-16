@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"h3yun-cli/pkg/h3yun"
+	"github.com/cedric123123/h3yun-cli/pkg/h3yun"
 )
 
 func leaf(spec Command, compact bool) map[string]any {
@@ -110,7 +110,7 @@ func schemaQuery(args []string) (any, error) {
 	for _, name := range names {
 		groups = append(groups, map[string]any{"name": name, "tool_count": counts[name]})
 	}
-	return map[string]any{"name": "h3yun", "version": Version, "platform": "h3yun_public_cloud", "default_base_url": "https://www.h3yun.com", "groups": groups, "next": "h3yun schema <group> --compact; h3yun schema \"<group> <command>\" --compact", "extended_capabilities": "workflow/org/forms require deployed custom controllers and verified operations mappings", "authentication": map[string]string{"engine_keys": "available", "public_cloud_qr_oauth": "no documented public OpenAPI authorization endpoint", "browser_oauth": "implemented client; requires configured OAuth provider and Bearer-capable API/gateway"}}, nil
+	return map[string]any{"name": "h3yun", "version": Version, "commit": h3yun.Commit, "platform": "h3yun_public_cloud", "default_base_url": "https://www.h3yun.com", "groups": groups, "next": "h3yun schema <group> --compact; h3yun schema \"<group> <command>\" --compact", "extended_capabilities": "workflow/org/forms require deployed custom controllers and verified operations mappings", "authentication": map[string]string{"engine_keys": "available", "public_cloud_qr_oauth": "no documented public OpenAPI authorization endpoint", "browser_oauth": "implemented client; requires configured OAuth provider and Bearer-capable API/gateway"}}, nil
 }
 
 func unknownCommand(path string) error {

@@ -1,7 +1,7 @@
-# TEST-RESULTS v0.3.0 — QA-20261016-001 执行记录
+# TEST-RESULTS v0.3.0 — QA-20261016-001 历史执行记录
 
 执行日期：2026-10-16（北京时间）。执行环境：Windows 11 amd64、Go 1.27.0、bash（PortableGit）。
-测试程序：本地构建 `h3yun.exe`（源码 commit `08714a0`，与 origin/main 同步）。
+测试程序：本地构建 `h3yun.exe`（源码 commit `08714a0`）。该记录对应 v0.3.0 测试时点，不代表后续分支或 Release 的当前状态。
 关联用例：[TEST-CASES.md](TEST-CASES.md)。本文件只记录实际执行的用例及结果，未执行的用例保持 NOT_RUN。
 
 ## 1. 自动回归基线（复现）
@@ -36,7 +36,7 @@
 | INP-002 | **PASS** | UTF-8 BOM 文件正确解码（中文/emoji/引号/换行保留）；无 BOM 正常。附注：损坏 JSON 报 INPUT 属预期（首测的 BOM 文件因生成脚本换行损坏被正确拒绝，重测规范文件通过） |
 | INP-003 | **PASS** | null/数组/字符串/损坏 JSON/双 JSON 均 exit 2 且零请求；批量接受数组、拒绝空数组和对象 |
 | INP-004 | **PASS** | 缺 schema/缺 id/未知 flag/多余位置参数/缺值选项均 exit 2 |
-| INP-005 | **PASS**（dry-run 层） | 9007199254740993 与 12.34 在 dry-run 回执中完整保留；服务端接收侧需 M/R 环境核实 → 部分变体 NOT_RUN |
+| INP-005 | **部分执行** | 9007199254740993 与 12.34 在 dry-run 回执中完整保留；服务端接收侧需 M/R 环境核实 → 部分变体 NOT_RUN |
 | INP-006 | **PASS** | 精确 16777215/16777216 字节均接受，16777217 拒绝 exit 2 INPUT；不崩溃 |
 | INP-007 | **PASS** | @不存在文件/@目录 exit 2 结构化错误；中文+空格合法路径成功 |
 | INP-008 | **PASS** | --submit/--submit=false 合法、=bad 拒绝；limit 1/500 接受、0/501 拒绝；offset 0 接受、-1/abc 拒绝 |
@@ -59,7 +59,7 @@
 | PRO-005 | **PASS** | 无 --config 且清空 H3YUN_CONFIG → exit 3，不猜测当前目录配置 |
 | PRO-006 | **PASS** | --name unknown → exit 3 PROFILE_NOT_FOUND；原配置不变 |
 | PRO-007 | **PASS** | --profile 与 H3YUN_PROFILE 叠加 switch 均拒绝 exit 3 CONFIG；配置未被改 |
-| PRO-008 | **PASS**（夹具级） | 预置 `.lock` 目录 → CONFIG_LOCKED exit 3；移除后切换成功。两进程真实竞争变体 NOT_RUN |
+| PRO-008 | **部分执行** | 预置 `.lock` 目录 → CONFIG_LOCKED exit 3；移除后切换成功。两进程真实竞争变体 NOT_RUN |
 | PRO-009 | **BLOCKED** | 备份/替换失败需故障注入夹具（磁盘满/权限错误），本机未建夹具 |
 | PRO-010 | **BLOCKED** | 目录/符号链接目标与父目录别名竞争需 OS 级夹具，Windows本次未建 |
 | PRO-011 | **BLOCKED** | 外部修改检测需同步测试夹具注入时序，未建 |
@@ -82,9 +82,9 @@ REC / FIL / EXT / NET / OAU / SEC / PLT / REL / E2E / NFR：**全部 NOT_RUN**�
 
 | 状态 | 数量 | 明细 |
 |---|---|---|
-| PASS | **39** | CLI 9 / INP 10 / PRO 8 / 基线复现(算 12 项检查) 中 CLI+INP+PRO 部分共 27 条用例 + 基线 4 项 + PRO-002 备份字节级验证 |
-| 部分执行 | 2 | CLI-008、CLI-009（L 类断言通过，M/F 变体待补） |
+| PASS | **24** | CLI 8 / INP 9 / PRO 7；只统计完整通过的验收用例 |
+| 部分执行 | **4** | CLI-008、CLI-009、INP-005、PRO-008（已通过部分变体，仍有 M/F/R 变体待补） |
 | BLOCKED | 4 | PRO-009~012（缺故障注入夹具） |
-| NOT_RUN | 95 | CFG 10 + REC/FIL/EXT/NET/OAU/SEC/PLT/REL/E2E/NFR 及全部 OS/R 变体 |
+| NOT_RUN | **108** | 140 条总数减去 24 PASS、4 部分执行和 4 BLOCKED；包含 CFG 及后续未执行模块 |
 
-> 本报告遵循 TEST-CASES 第 8 节约定：未填入任何真实凭据；证据为本文件记录的退出码与回执摘要；未把关联 UT 的通过改记为用例 PASS。
+> 自动回归基线是 4 项独立检查，不计入 140 条验收用例的状态统计。本报告遵循 TEST-CASES 第 8 节约定：未填入任何真实凭据；证据为本文件记录的退出码与回执摘要；未把关联 UT 的通过改记为用例 PASS。

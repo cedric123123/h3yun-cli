@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"time"
 
-	"h3yun-cli/internal/localstate"
+	"github.com/cedric123123/h3yun-cli/internal/localstate"
 )
 
 func StoreDir(override string) (string, error) {

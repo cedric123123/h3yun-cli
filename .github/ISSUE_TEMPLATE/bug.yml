@@ -1,0 +1,51 @@
+name: Bug 报告
+description: 报告可复现的 CLI 问题（请勿提交任何密钥或真实业务数据）
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈。请先移除 EngineCode、EngineSecret、授权令牌、真实表单数据和带签名的下载地址。安全漏洞请使用仓库的私密漏洞报告，不要创建公开 Issue。
+  - type: input
+    id: version
+    attributes:
+      label: CLI 版本
+      description: 请粘贴 `h3yun version` 的脱敏输出。
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: 运行环境
+      description: 操作系统、CPU 架构和终端类型。
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: 复现命令
+      description: 提供已脱敏的完整命令和最小输入。
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: 实际结果
+      description: 提供 JSON 回执、退出码及可复现频率；请确认内容已脱敏。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期结果
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: 安全确认
+      options:
+        - label: 我已确认内容不含密钥、令牌、Cookie、真实业务数据或敏感下载链接。
+          required: true

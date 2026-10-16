@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"h3yun-cli/internal/auth"
+	"github.com/cedric123123/h3yun-cli/internal/auth"
 )
 
 func TestProgressiveSchema(t *testing.T) {

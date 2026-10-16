@@ -13,6 +13,11 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Go tests failed' }
     & $GoCommand vet ./...
     if ($LASTEXITCODE -ne 0) { throw 'Go vet failed' }
+    & $GoCommand mod verify
+    if ($LASTEXITCODE -ne 0) { throw 'Go module verification failed' }
+    $revision = (& git rev-parse --verify HEAD).Trim()
+    if ($LASTEXITCODE -ne 0 -or -not $revision) { throw 'Cannot determine Git revision' }
+    $ldflags = '-s -w -X github.com/cedric123123/h3yun-cli/pkg/h3yun.Commit=' + $revision
     New-Item -ItemType Directory -Force -Path 'dist' | Out-Null
     $targets = @(
         @{ OS = 'windows'; Arch = 'amd64'; Name = 'h3yun.exe' },
@@ -23,7 +28,7 @@ try {
     foreach ($target in $targets) {
         $env:GOOS = $target.OS
         $env:GOARCH = $target.Arch
-        & $GoCommand build -trimpath -ldflags '-s -w' -o (Join-Path 'dist' $target.Name) ./cmd/h3yun
+        & $GoCommand build -trimpath -ldflags $ldflags -o (Join-Path 'dist' $target.Name) ./cmd/h3yun
         if ($LASTEXITCODE -ne 0) { throw ('Build failed for ' + $target.OS + '/' + $target.Arch) }
     }
     Get-FileHash -Algorithm SHA256 -Path 'dist/h3yun.exe', 'dist/h3yun-linux-amd64', 'dist/h3yun-darwin-arm64', 'dist/h3yun-darwin-amd64'
