@@ -1,5 +1,7 @@
 package cli
 
+import "github.com/cedric123123/h3yun-cli/pkg/h3yun"
+
 type Flag struct {
 	Name        string `json:"name"`
 	Type        string `json:"type"`
@@ -55,7 +57,7 @@ func commonFlags() []Flag {
 
 func discovery() map[string]any {
 	return map[string]any{
-		"name": "h3yun", "version": Version, "contract_version": 1,
+		"name": "h3yun", "version": Version, "commit": h3yun.Commit, "contract_version": 1,
 		"commands": commands(), "common_flags": commonFlags(),
 		"local_commands": []string{"schema", "help", "version"},
 		"syntax":         "h3yun <group> <command> [flags]; flags follow the command; booleans use --flag or --flag=false",

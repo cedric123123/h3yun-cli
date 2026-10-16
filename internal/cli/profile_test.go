@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"h3yun-cli/internal/localstate"
+	"github.com/cedric123123/h3yun-cli/internal/localstate"
 )
 
 func TestProfileSwitchDryRunBackupAndPrevious(t *testing.T) {

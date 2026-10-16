@@ -33,6 +33,11 @@ func TestLocalCommandsWithoutCredentials(t *testing.T) {
 			t.Fatalf("%v: %+v", args, data)
 		}
 	}
+	_, result, _ := invoke(t, []string{"version"}, "", nil)
+	version := result["data"].(map[string]any)
+	if version["version"] != Version || version["commit"] == "" {
+		t.Fatalf("version metadata missing: %+v", version)
+	}
 }
 
 func TestDryRunWireShapes(t *testing.T) {

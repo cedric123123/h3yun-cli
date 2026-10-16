@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/signal"
 
-	"h3yun-cli/internal/cli"
+	"github.com/cedric123123/h3yun-cli/internal/cli"
 )
 
 func main() {

@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"h3yun-cli/internal/localstate"
-	"h3yun-cli/pkg/h3yun"
+	"github.com/cedric123123/h3yun-cli/internal/localstate"
+	"github.com/cedric123123/h3yun-cli/pkg/h3yun"
 )
 
 func switchProfile(v values, env func(string) string) (any, error) {

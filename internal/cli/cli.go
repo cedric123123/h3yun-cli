@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"strings"
 
-	"h3yun-cli/pkg/h3yun"
+	"github.com/cedric123123/h3yun-cli/pkg/h3yun"
 )
 
-const Version = h3yun.Version
+var Version = h3yun.Version
 
 type Result struct {
 	OK    bool           `json:"ok"`
@@ -438,7 +438,7 @@ func Run(ctx context.Context, args []string, stdin io.Reader, stdout io.Writer, 
 				if len(args) > 1 {
 					err = h3yun.Fail("USAGE", "unexpected version arguments", 2)
 				}
-				data = map[string]any{"version": Version}
+				data = map[string]any{"version": Version, "commit": h3yun.Commit}
 			} else {
 				data, err = schemaQuery(args[1:])
 			}

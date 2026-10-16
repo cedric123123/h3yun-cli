@@ -23,7 +23,11 @@ import (
 const MaxJSON = 16 << 20
 const MaxUpload = 10 << 20
 const MaxTimeout = 60 * time.Second
-const Version = "0.3.0"
+
+var Version = "0.3.1"
+
+// Commit is injected by release builds so users can trace a binary back to source.
+var Commit = "unknown"
 
 type Error struct {
 	Code           string   `json:"code"`

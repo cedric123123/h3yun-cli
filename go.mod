@@ -1,4 +1,4 @@
-module h3yun-cli
+module github.com/cedric123123/h3yun-cli
 
 go 1.22
 
