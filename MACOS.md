@@ -21,7 +21,7 @@ sh scripts/smoke.sh "$PWD/dist/h3yun-darwin-arm64"
 
 Intel 把文件名换成 h3yun-darwin-amd64。也可复制到自己维护的 PATH 目录并命名 h3yun；本项目不自动改系统 PATH。二进制未进行 Apple Developer ID 签名或 notarization，macOS 可能要求使用者按系统提示批准运行；不应宣称已完成签名分发。
 
-单独的 `h3yun-v0.3.1-darwin-arm64.tar.gz` / `h3yun-v0.3.1-darwin-amd64.tar.gz` 保存执行权限。将对应包解压到新目录后，程序位于根目录的 `h3yun`，直接运行 `./h3yun version` 以及 `sh scripts/smoke.sh "$PWD/h3yun"`。源码和四平台程序一起放在完整 ZIP 包中。
+单独的 `h3yun-v0.4.0-darwin-arm64.tar.gz` / `h3yun-v0.4.0-darwin-amd64.tar.gz` 保存执行权限。将对应包解压到新目录后，程序位于根目录的 `h3yun`，直接运行 `./h3yun version` 以及 `sh scripts/smoke.sh "$PWD/h3yun"`。源码和四平台程序一起放在完整 ZIP 包中。
 
 ## 凭据与多组织
 
@@ -32,9 +32,19 @@ export H3YUN_ENGINE_CODE='<使用者的 EngineCode>'
 export H3YUN_ENGINE_SECRET='<使用者的 EngineSecret>'
 ./dist/h3yun-darwin-arm64 auth status
 ./dist/h3yun-darwin-arm64 records list --schema YOUR_SCHEMA --limit 100
+./dist/h3yun-darwin-arm64 doctor --remote --schema YOUR_SCHEMA
 ```
 
-profile 配置按 README，文件路径用 macOS 路径。脚本可通过参数数组和 stdin 调用，所有核心功能不依赖 PowerShell 或 Windows 路径。
+profile 配置按 README，文件路径用 macOS 路径。脚本可通过参数数组和 stdin 调用，所有核心功能不依赖 PowerShell 或 Windows 路径。源码、发行包和配置示例不含实际 EngineCode/EngineSecret；环境变量模式不持久化凭据。远程 doctor 仅核对指定表单本次可读，不能证明全局或写权限。
+
+v0.4.0 的多页查询和串行批量更新在 macOS 上与其他系统使用相同边界：
+
+```sh
+./dist/h3yun-darwin-arm64 records list --schema YOUR_SCHEMA --limit 500 --all --max 5000
+./dist/h3yun-darwin-arm64 records update-many --schema YOUR_SCHEMA --data @updates.json
+```
+
+这两类多请求操作的请求起点至少间隔 700ms；`--all` 还受明确 max 和 64 MiB 累计上限限制，并非一致性快照。`--min-interval` 只作用于当前进程，多个 Agent 或进程仍需由宿主协调。
 
 ## 浏览器与文件系统
 

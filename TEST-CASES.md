@@ -1,34 +1,34 @@
-# 氚云 Agent CLI v0.3.1 完整测试用例
+# 氚云 Agent CLI v0.4.0 完整测试用例
 
-文档日期：2026-10-16。适用对象：当前仓库 v0.3.1 源码及对应发行程序。共 **140 条验收用例、14 个模块**，关联现有 **43 个 Go 测试函数**（其中包含表驱动子用例）。
+文档日期：2026-10-20。适用对象：当前仓库 v0.4.0 源码及对应发行程序。共 **169 条验收用例、15 个模块**，关联现有 **56 个 Go 测试函数**（其中包含表驱动子用例）。
 
-本文件是可执行的测试设计与验收清单，不是“140 条全部通过”的报告。除第 2 节已实跑的自动回归外，以下验收用例初始状态统一为 **NOT_RUN**。自动测试关联表示有相关检查，**不等于整条用例及全部平台、边界变体已被覆盖**。测试中发现与预期不符，应记录缺陷，不修改预期来迁就现状。
+本文件是可执行的测试设计与验收清单，不是“169 条全部通过”的报告。除第 2 节已实跑的自动回归外，以下验收用例初始状态统一为 **NOT_RUN**。自动测试关联表示有相关检查，**不等于整条用例及全部平台、边界变体已被覆盖**。测试中发现与预期不符，应记录缺陷，不修改预期来迁就现状。
 
 ## 1. 范围与明确边界
 
-覆盖命令发现、JSON 输入、配置、环境切换、记录增删改查、附件、原始 API、自定义操作、HTTP/TLS、OAuth、会话安全、跨平台、发布及 Agent 工作流。
+覆盖命令发现、JSON 输入、配置、环境切换、记录增删改查、显式自动翻页、串行批量更新、字段元数据、点路径投影、请求间隔、附件、原始 API、自定义操作、HTTP/TLS、OAuth、会话安全、跨平台、发布及 Agent 工作流。
 
-当前注册表有 19 个命令，另有根级 help/schema/version。8 个标准公共 API 已实现客户端；审批、组织、表单管理通过用户部署的控制器与映射扩展，并非已内置全部远程能力。
+当前注册表有 21 个命令，另有根级 help/schema/version。8 个标准公共 API 已实现客户端；`schema fields` 依赖使用者已部署、已核实且标记为只读的控制器映射，不是氚云原生字段 OpenAPI。审批、组织、表单管理仍通过用户部署的控制器与映射扩展，并非已内置全部远程能力。
 
 浏览器 OAuth + PKCE 客户端可用本地提供方验证，但尚无已核实的氚云公有云扫码 OpenAPI 授权端点。真实扫码需要提供方、应用注册和 Bearer 网关；条件不具备时应标 BLOCKED，不能用模拟成功代替真实扫码验收。
 
-本用例依据当前源码及仓库 [README](README.md)、[API-CONTRACT](API-CONTRACT.md)、[AUTH](AUTH.md)、[MACOS](MACOS.md)、[AGENT](AGENT.md) 制定。真实平台行为以已获授权的沙箱实测为准；本次编写不新增对远程文档时效性的保证。
+本用例依据当前源码及仓库 [README](README.md)、[API-CONTRACT](API-CONTRACT.md)、[METADATA](METADATA.md)、[AUTH](AUTH.md)、[MACOS](MACOS.md)、[AGENT](AGENT.md) 制定。真实平台行为以已获授权的沙箱实测为准；本次编写不新增对远程文档时效性的保证。
 
 ## 2. 本次已执行的基线
 
-2026-10-16 在 Windows amd64、Go 1.27.0 环境重新运行：
+2026-10-20 在 Windows 11 amd64、Go 1.27.2 环境对 v0.4.0 工作区快照重新运行：
 
 | 检查 | 本次结果 | 解释 |
 |---|---|---|
-| go test ./... -count=1 -cover | PASS | 43 个测试函数及其子用例通过；主要为本地/模拟服务验证 |
+| go test ./... -count=1 -cover | PASS | 56 个测试函数及其子用例通过；主要为本地/受控模拟服务验证 |
 | go vet ./... | PASS | 静态检查通过 |
 | go mod verify | PASS | 依赖文件校验通过 |
-| internal/cli 语句覆盖率 | 86.0% | Windows 本次测量 |
-| pkg/h3yun 语句覆盖率 | 83.6% | Windows 本次测量 |
-| internal/auth 语句覆盖率 | 74.2% | 不是 Mac 真机钥匙串覆盖率 |
+| internal/cli 语句覆盖率 | 87.9% | Windows 本次测量 |
+| pkg/h3yun 语句覆盖率 | 84.2% | Windows 本次测量 |
+| internal/auth 语句覆盖率 | 73.4% | 不是 Mac 真机钥匙串覆盖率 |
 | internal/localstate 语句覆盖率 | 83.3% | Windows 本次测量 |
 | cmd/h3yun、scripts/package | 0.0% | 不隐去未覆盖入口 |
-| 140 条验收用例逐条执行 | NOT_RUN | 本文件提供待执行清单，不据关联关系自动改为 PASS |
+| 169 条验收用例逐条执行 | NOT_RUN | 本文件提供待执行清单，不据关联关系自动改为 PASS |
 | 真实氚云读写/审批、Mac/Linux 真机 | NOT_RUN | 当前未完成这些环境的实测 |
 
 历史交叉编译及发行物检查见 [VALIDATION.md](VALIDATION.md)，其日期与本次回归日期不同。交叉编译不能替代运行验收。
@@ -53,7 +53,7 @@
 
 环境用“/”连接表示需要分阶段或分平台执行，不是任选一种就算全通过。每条列出的输入变体均须执行；记录可细分为 `INP-008/limit-501/windows`。一个变体失败，整条不能标 PASS。
 
-自动关联列的 UT 编号见第 7 节。它们仅指相关既有测试；“—”表示没有指定现成自动关联，不表示该用例不重要。本 CLI 没有 `--mock`、`--device`、`--jq` 或通用自动翻页参数；模拟与注入是在测试夹具中进行，不能虚构 CLI 开关。
+自动关联列的 UT 编号见第 7 节。它们仅指相关既有测试；“—”表示没有指定现成自动关联，不表示该用例不重要。本 CLI 没有 `--mock`、`--device` 或 `--jq` 参数；自动翻页只通过 `records list --all --max N` 显式启用。模拟与注入是在测试夹具中进行，不能虚构 CLI 开关。
 
 ### 3.2 安全前置条件
 
@@ -71,7 +71,7 @@
 
 每个正常结束的命令均记录退出码、stdout、stderr、持续时间、请求次数及本地/远程副作用。默认 stdout 应能解析为且仅为一个 JSON 对象；成功退出 0，失败退出非 0；保留 `ok/error/meta` 契约，不强制要求所有可选字段出现。
 
-`auth status` 和 `doctor` 是本地检查，不证明远程认证有效。网络错误可重试提示不等于自动重放授权；尤其要检查 `outcome_unknown`。
+`auth status` 和默认 `doctor` 是本地检查，不证明远程认证有效。`doctor --remote --schema S` 只验证当前凭据对指定表单的一次读取结果；失败不能单独区分密钥、表单编码和权限，成功也不证明其他表单或写权限。网络错误可重试提示不等于自动重放授权；尤其要检查 `outcome_unknown`。
 
 业务 dry-run 应零网络、零远程变更、零下载文件；profile switch dry-run 不创建备份/锁文件；OAuth dry-run 不创建监听器或会话。读取本地输入不等于有副作用。
 
@@ -93,6 +93,8 @@
 | F-FILTER | 完整 Filter 对象；运算符及字段以测试表单支持契约为准 |
 | F-PRO | 下面多环境配置的本轮副本；prod只是测试名称，并非真实生产 |
 | F-OPS | 下方仅供模拟的操作映射；R须替换成已核实部署值 |
+| F-META | 已部署字段元数据控制器的只读操作映射；M可用假控制器，R须核实字段码、类型、必填及选项来源 |
+| F-UPDATES | 1..500 个 `{"id":"...","data":{...}}` 对象组成的数组；ID 唯一 |
 | F-OAUTH | 下方本地 OAuth 夹具配置；不是可直接扫码的公共端点 |
 | F-FILE | 中文空格文件名、真实小PNG、文本；另准备0/10MiB−1/10MiB/10MiB+1字节样本 |
 | F-OUT | 专属临时目录中的新文件名，正常下载前必须不存在 |
@@ -195,10 +197,14 @@ F-RAW 示例（只用于 M/dry-run，R必须替换真实编码和 ID）：
 <BIN> schema "records create" --compact
 <BIN> records get --schema <S> --id <ID>
 <BIN> records list --schema <S> --offset 0 --limit 100 --count
+<BIN> records list --schema <S> --all --max 5000 --limit 100
 <BIN> records create --schema <S> --data @<F-REC> --dry-run
 <BIN> records create-many --schema <S> --data @<F-BATCH> --dry-run
 <BIN> records update --schema <S> --id <ID> --data @<F-PATCH> --dry-run
+<BIN> records update-many --schema <S> --data @<F-UPDATES> --dry-run
 <BIN> records delete --schema <S> --id <ID> --dry-run
+<BIN> schema fields --schema <S> --operation schema.fields
+<BIN> doctor --remote --schema <S>
 <BIN> files upload --schema <S> --id <ID> --field <ATT_FIELD> --file <F-FILE> --dry-run
 <BIN> files download --attachment-id <ATT_ID> --output <F-OUT> --dry-run
 <BIN> profile switch --config <F-PRO> --name sandbox --dry-run
@@ -227,6 +233,7 @@ F-RAW 示例（只用于 M/dry-run，R必须替换真实编码和 ID）：
 | REL | 构建、依赖与交付 | 6 |
 | E2E | 真实沙箱端到端验收 | 6 |
 | NFR | 性能、稳定性与可恢复性 | 4 |
+| V4 | v0.4.0 字段发现、批处理、投影、远程诊断与节流增量验收 | 29 |
 
 ## 6. 详细测试用例
 
@@ -236,9 +243,9 @@ F-RAW 示例（只用于 M/dry-run，R必须替换真实编码和 ID）：
 
 | ID / 名称 | 优先级 | 环境 | 前置差异与操作步骤 | 预期结果 | 自动关联（部分） |
 |---|---|---|---|---|---|
-| CLI-001 无凭据本地发现 | P0 | L | 清空测试进程凭据；分别执行空参数、help、version、schema、ops list（不指定映射）。 | 退出0、ok=true；version为0.3.1；不要求密钥、不发请求。 | UT-001 |
-| CLI-002 渐进 Schema | P0 | L | 依次执行 schema、schema records --compact、schema "records create" --compact、schema --all。 | 根只列组；组列摘要；leaf列参数；全量恰有19条已注册命令且无重名。 | UT-016 |
-| CLI-003 命令帮助同源 | P1 | L | 遍历19命令的 --help，与对应 leaf schema 对比。 | 参数、必填、类型、默认值及风险一致；删除需确认、raw条件确认、profile switch本地副作用明确。 | UT-016 |
+| CLI-001 无凭据本地发现 | P0 | L | 清空测试进程凭据；分别执行空参数、help、version、schema、ops list（不指定映射）。 | 退出0、ok=true；version为0.4.0；不要求密钥、不发请求。 | UT-001 |
+| CLI-002 渐进 Schema | P0 | L | 依次执行 schema、schema records --compact、schema "records create" --compact、schema --all。 | 根只列组；组列摘要；leaf列参数；全量恰有21条已注册命令且无重名。 | UT-016 |
+| CLI-003 命令帮助同源 | P1 | L | 遍历21命令的 --help，与对应 leaf schema 对比。 | 参数、必填、类型、默认值及风险一致；删除需确认、raw条件确认、profile switch本地副作用明确。 | UT-016 |
 | CLI-004 未知命令纠错 | P1 | L | 执行 records nonexistent、unknown；执行 schema nonexistent。 | 退出2、UNKNOWN_COMMAND；hint/actions引导发现已注册命令，不联网。 | UT-016 |
 | CLI-005 全局参数位置 | P0 | L | 将 config/profile/format/fields/timeout/pretty逐一放在命令前、中、后；比较同一dry-run结果，另测 -f json。 | 合法位置输出语义一致；参数值不会被当成另一全局选项。 | UT-017 |
 | CLI-006 格式支持边界 | P1 | L | 同一schema用 --format json、--format pretty、--pretty；另用 --format csv、--jq。 | 支持格式均可解析单个JSON；不支持格式/参数退出2，不能静默忽略。 | UT-017、UT-003 |
@@ -266,7 +273,7 @@ F-RAW 示例（只用于 M/dry-run，R必须替换真实编码和 ID）：
 
 | ID / 名称 | 优先级 | 环境 | 前置差异与操作步骤 | 预期结果 | 自动关联（部分） |
 |---|---|---|---|---|---|
-| CFG-001 默认公有云 | P0 | L | 不指定配置与base_url；records get --schema S --id ID --dry-run；执行doctor。 | 默认https://www.h3yun.com及公开API路径；doctor仅本地检查，不宣称密钥有效。 | UT-021 |
+| CFG-001 默认公有云 | P0 | L | 不指定配置与base_url；records get --schema S --id ID --dry-run；执行默认doctor。 | 默认https://www.h3yun.com及公开API路径；默认doctor仅本地检查，不宣称密钥有效。 | UT-021 |
 | CFG-002 配置来源优先级 | P1 | L | 准备base_url不同的两份F-PRO；同时指定H3YUN_CONFIG与 --config，分别profile show及dry-run。 | 显式config优先；未给路径不猜测读取当前目录文件。 | UT-018 |
 | CFG-003 配置严格校验 | P0 | L | 配置含engine_secret、未知字段、损坏JSON、多个JSON；另测合法BOM配置。 | 非法配置退出2，不接受落盘密钥；合法BOM配置可读。 | UT-007 |
 | CFG-004 凭据组合 | P0 | M | 仅EngineCode、仅EngineSecret、均缺失、二者齐备逐项执行get；齐备时使用假凭据及M。 | 不完整时退出3且不联网；齐备头正确；auth status仅credentials_present，remote_verified=false。 | UT-005、UT-004 |
@@ -275,7 +282,7 @@ F-RAW 示例（只用于 M/dry-run，R必须替换真实编码和 ID）：
 | CFG-007 只读不可弱化 | P0 | M | profile read_only=true且环境H3YUN_READ_ONLY=false；再反向设定；分别get/create/delete/raw。 | 任一只读来源为true就阻止远程写入；get允许；raw即使查询Action也保守视作写。 | UT-018、UT-005 |
 | CFG-008 超时三来源 | P0 | L/M | 配置、H3YUN_TIMEOUT、--timeout分别测试1ms/45s/60s/0/−1s/60.001s/文本；检查覆盖顺序。 | 有效范围(0,60s]，默认45s；非法配置退出3；CLI参数最终优先；Go客户端同样守边界。 | UT-012、UT-024 |
 | CFG-009 端点和TLS配置 | P0 | L/M | base_url测试带userinfo、query、fragment、不支持scheme及HTTP；HTTP分别显式允许/未允许；测试自定义路径。 | 不安全或无效端点拒绝；默认HTTPS；显式测试HTTP才允许；端点构造不跳到另一主机。 | UT-025 |
-| CFG-010 诊断不做远程认证 | P1 | L | 用假密钥执行doctor/auth status/profile show；设置无效CA文件再执行doctor；统计M命中次数。 | 诊断零请求、不泄密；错误CA可识别；不以本地凭据存在证明真实权限。 | UT-021、UT-001 |
+| CFG-010 默认诊断不做远程认证 | P1 | L | 用假密钥执行默认doctor/auth status/profile show；设置无效CA文件再执行doctor；统计M命中次数。 | 默认诊断零请求、不泄密；错误CA可识别；不以本地凭据存在证明真实权限。远程诊断另见 V4-DOC。 | UT-021、UT-001 |
 
 ### PRO：环境切换与恢复
 
@@ -300,7 +307,7 @@ F-RAW 示例（只用于 M/dry-run，R必须替换真实编码和 ID）：
 |---|---|---|---|---|---|
 | REC-001 单条查询 | P0 | M/R | get --schema S --id ID；M返回一条记录；R使用测试数据真实ID。 | ActionName=LoadBizObject，SchemaCode/BizObjectId正确；成功返回完整业务回执，零写副作用。 | UT-026 |
 | REC-002 分页查询与头 | P0 | M | list --schema S --offset 10 --limit 2；M返回两条。 | Filter是JSON字符串，FromRowNum=10、ToRowNum=12；认证头正确；一次请求；next_offset=12且has_more_possible=true。 | UT-004 |
-| REC-003 空页与不足一页 | P1 | M | 分别返回0、1条，对limit=2检查meta；再返回2条。 | 空/不足页无更多的可能性提示；满页仅表示可能有更多，不假称总数已知、不自动翻页。 | UT-004 |
+| REC-003 单页模式空页与不足一页 | P1 | M | 不传 `--all`，分别返回0、1条，对limit=2检查meta；再返回2条。 | 空/不足页无更多的可能性提示；满页仅表示可能有更多，不假称总数已知；默认仍只请求一页。 | UT-004 |
 | REC-004 完整Filter | P1 | M/R | list --schema S --filter @F-FILTER；含条件、排序、返回字段；M核对嵌套对象。 | Filter正确序列化，条件原样发送；R返回值满足测试条件，具体运算符由真实表单协议确认。 | UT-002 |
 | REC-005 单条默认草稿 | P0 | M/R | create --schema S --data @F-REC；R操作前记录业务规则。 | ActionName=CreateBizObject；BizObject字符串；IsSubmit=false；R核对草稿/发起节点状态，返回ID纳入清理清单。 | UT-002、UT-013 |
 | REC-006 单条提交语义 | P0 | M/R | 普通表单及流程表单各执行create --submit；R仅用隔离审批人。 | IsSubmit=true；普通数据生效，流程进入下一审批节点；存在副作用warning，不能只看HTTP成功判通过。 | UT-013、UT-014 |
@@ -415,7 +422,7 @@ F-RAW 示例（只用于 M/dry-run，R必须替换真实编码和 ID）：
 
 | ID / 名称 | 优先级 | 环境 | 前置差异与操作步骤 | 预期结果 | 自动关联（部分） |
 |---|---|---|---|---|---|
-| REL-001 自动回归 | P0 | L | 执行 go test ./... -count=1 -cover，保留完整报告和环境信息。 | 所有43个测试函数通过（含子用例）；不把函数数当验收场景数；覆盖率记录各包。 | UT-001～UT-043 |
+| REL-001 自动回归 | P0 | L | 执行 go test ./... -count=1 -cover，保留完整报告和环境信息。 | 所有56个测试函数通过（含子用例）；不把函数数当验收场景数；覆盖率记录各包。 | UT-001～UT-056 |
 | REL-002 静态与依赖校验 | P0 | L | 分别执行go vet ./...、go mod verify并各自检查退出码；检查go.mod/go.sum。 | 均退出0；go-keyring固定v0.2.8；无未经批准的新增依赖。 | — |
 | REL-003 四平台构建 | P0 | L | 按scripts/build.ps1或build.sh构建四目标；读取go version -m；额外交叉编译Darwin auth/cli测试。 | Windows/Linux amd64、Darwin amd64/arm64产物齐全且架构正确；CGO=0；交叉测试程序只记编译通过。 | — |
 | REL-004 发行包完整性 | P0 | L | 检查源码包、Windows ZIP、Linux/macOS tar.gz、SHA256SUMS、二进制hash、README/AUTH/MACOS/许可和skills；验证tar执行位。 | 校验和与构建产物一致；许可证齐全；无真实凭据、缓存、锁、临时测试程序；平台说明相符。 | — |
@@ -439,12 +446,48 @@ F-RAW 示例（只用于 M/dry-run，R必须替换真实编码和 ID）：
 |---|---|---|---|---|---|
 | NFR-001 本地命令响应基线 | P2 | OS | 冷启动5次、热启动30次version/schema/leaf；记录机器、P50/P95、输出字节及内存。 | 输出始终合法；建议本机P95<1秒作为待确认体验目标，不冒称既有SLA；明显退化提交性能缺陷。 | — |
 | NFR-002 边界资源占用 | P1 | M/F | 运行16MiB JSON、10MiB上传、1GiB流下载，记录峰值内存/句柄/结束时间；在受控环境重复。 | 无崩溃、死锁、无界增长；下载不整块载入内存；性能指标与环境一起记录，不向真实平台压测。 | — |
-| NFR-003 调用频率责任 | P1 | M/R | M并发两个调用方记录请求节奏；R仅由宿主限流器按同一集成每秒1–2次协调，逐次执行。 | 明确CLI无跨进程限流、自动拆分或重试；Agent宿主负责限流；不把服务端429当可无限重试。 | — |
+| NFR-003 调用频率责任 | P1 | M/R | M并发两个调用方记录请求节奏；分别配置 `H3YUN_MIN_INTERVAL`；R由宿主按同一集成协调多个CLI进程。 | CLI只保证单进程单客户端请求起点间隔，不提供跨进程全局限流或自动重试；多进程仍由Agent宿主协调；不把服务端429当可无限重试。 | UT-051、UT-054 |
 | NFR-004 连续回归与故障后恢复 | P1 | M/F | 模拟网络错、协议错、写失败、锁冲突各100轮，再执行正常读写；比较临时文件/句柄基线。 | 无持续增长或状态污染；正常请求可恢复；失败写入先核对业务状态，遗留锁按精确目标人工处理。 | — |
+
+### V4：v0.4.0 增量验收
+
+以下 29 条专门覆盖 v0.4.0 新增行为。自动测试只覆盖列出的本地或受控模拟变体；标有 R/OS 的真实平台、真实控制器和跨进程行为仍须单独执行。
+
+| ID | 优先级 | 环境 | 步骤 | 预期 | 自动关联 |
+|---|---|---|---|---|---|
+| V4-FLD-001 字段能力必须显式配置 | P0 | L | operations为空、映射为write、使用示例占位符时分别执行 `schema fields --schema S --dry-run`。 | 缺失或未核实能力退出3；write映射不能冒充字段读取；占位符不可执行；均零请求。 | UT-010、UT-048 |
+| V4-FLD-002 元数据参数安全 | P0 | L | `--schema-param` 分别使用 EngineSecret/ActionName/空值；映射额外要求未提供参数。 | 保留路由和凭据字段被拒；缺required退出2；不得把schema值注入认证或路由字段。 | UT-048 |
+| V4-FLD-003 控制器线形与成功条件 | P0 | M | 配置只读F-META，使用自定义 FormCode 参数；M记录请求并分别返回命中/不命中 success_field。 | Action/Controller/AppCode/FormCode完全匹配映射；meta标明 configured_custom_controller；业务条件不满足退出5。 | UT-049 |
+| V4-FLD-004 字段回执保真 | P1 | M | M返回字段码、名称、类型、必填、选项及未知扩展字段；保存CLI回执。 | CLI保留控制器原始 ReturnData，不猜测、重命名或伪造字段定义；统一回执和脱敏仍生效。 | UT-049 |
+| V4-FLD-005 已部署控制器真实性 | P0 | R | 对可清理测试表执行字段发现，并与平台设计器逐项比对主表、子表、选项和必填规则。 | 只有真实控制器契约和权限核实后才PASS；字段码/类型/必填/选项准确。无账号或契约时BLOCKED，不能用M替代。 | — |
+| V4-PAG-001 自动翻页显式上限 | P0 | L | 分别使用 `--all`、仅`--max`、`--all --max 0/1/100000/100001`，全部dry-run。 | `--all`必须同时给max；max不可单独使用；合法范围1..100000；非法输入在联网前退出2。 | UT-047 |
+| V4-PAG-002 页边界与过滤保留 | P0 | M | 从offset=7、limit=2、max=3开始；Filter含自定义Marker；M记录两页请求。 | From连续前移；To不超过剩余max；自定义Filter字段逐页保留；第一页2条、末页最多1条。 | UT-044 |
+| V4-PAG-003 正常停止语义 | P0 | M | 第二页分别返回短页/空页及恰好达到max；检查聚合结果和meta。 | 短页/空页 complete=true、stop_reason=end_of_data；达到max返回max条且complete=false、stop_reason=max_reached，不多发请求。 | UT-044 |
+| V4-PAG-004 中途失败保留进度 | P0 | M | 第一页成功，第二页依次返回Successful=false、HTTP429/500、协议缺字段、超出请求页大小。 | 立即停止且无自动重试；保留此前行；partial=true、next_offset指向安全续跑位置；错误分类及可用失败回执保留。 | UT-044 |
+| V4-PAG-005 聚合输出上限 | P0 | M | 每页返回约9MiB，持续请求至聚合超过64MiB；记录请求数及已保留行。 | 以OUTPUT_LIMIT退出6；超限页不并入结果；返回此前7页和next_offset；不继续拉取。 | UT-045 |
+| V4-PAG-006 多页最小间隔 | P0 | M | 不设间隔、设100ms、设2s分别dry-run检查计划；真实M请求记录起始时刻。 | 多请求操作有效间隔至少700ms；更大显式值保留；间隔按请求起点计算；无自动重试。 | UT-047、UT-051、UT-054 |
+| V4-PAG-007 非快照分页与续跑 | P1 | M/R | 分页期间插入/删除可识别测试行；另从失败回执next_offset手工续跑并按业务主键去重。 | meta明确snapshot=false；CLI不声称结果是事务快照；Agent对变化数据允许重复/遗漏风险并核对去重。R只能在获批测试表执行。 | — |
+| V4-BUL-001 批量更新输入约束 | P0 | L | 测试空数组、501条、缺id/data、空data、额外键、重复id、null及合法1/500条，全部dry-run。 | 仅接受1..500条且id唯一、data为非空对象、每项只有id/data；非法输入退出2且零请求。 | UT-047 |
+| V4-BUL-002 预览和只读策略 | P0 | L | 合法F-UPDATES执行dry-run并核对预览；在read_only=true下执行真实命令。 | dry-run展示非原子、串行、stop_on_error计划且零请求；只读环境在首个写请求前拒绝。 | UT-047 |
+| V4-BUL-003 串行成功与数值保真 | P0 | M | 三条更新含9007199254740993；M记录顺序与请求体并全部成功。 | 严格按输入顺序各发一次UpdateBizObject；大整数不舍入；succeeded_ids完整，complete=true，无整体重放。 | UT-046 |
+| V4-BUL-004 平台业务失败 | P0 | M | 第一条成功、第二条Successful=false、第三条待执行。 | 立即停止；a在succeeded_ids、b在failed_ids、c在unprocessed_ids；无第三次请求，失败回执可诊断。 | UT-046 |
+| V4-BUL-005 结果未知分类 | P0 | M/F | 第一条成功；第二条分别HTTP500与损坏协议；第三条待执行。 | 第二条进入unknown_ids并标示结果未知，第三条unprocessed；不自动重试；Agent先查证b实际状态。 | UT-046 |
+| V4-BUL-006 等待期间取消 | P1 | M/F | 第一条响应后取消context，后续请求正等待最小间隔；记录服务端命中。 | 只有第一条命中；后续ID保持unprocessed；取消等待不会被标为已发送或结果未知。 | UT-046、UT-055 |
+| V4-BUL-007 续跑边界 | P0 | M/R | 根据V4-BUL-004/005回执分别构造续跑输入；failed_ids修正后重试，unknown_ids先查询，unprocessed_ids另批执行。 | 只处理经核实的目标ID；不重放succeeded_ids；unknown_ids未经查证不得重试；R保留前后状态证据。 | — |
+| V4-PRJ-001 嵌套对象与数组投影 | P0 | L/M | 对含ReturnData.BizObjectArray[].Owner.Name的数据使用多条点路径投影。 | 每个数组元素只保留所选嵌套字段，父级结构保持；ok/error/meta不被删除。 | UT-052 |
+| V4-PRJ-002 点号字面键与父级优先 | P1 | L | data顶层同时含literal.dot键和嵌套对象；先选literal.dot，再同时选ReturnData及其子路径。 | data顶层精确字面键优先匹配；选中父级时保留完整父值，子路径不反向裁剪。 | UT-052 |
+| V4-PRJ-003 非法路径零执行 | P0 | L/M | 使用空字符串、`.a`、`a.`、`a..b`、`a,,b`；配置可计数M。 | 在凭据或网络调用前退出2；M命中为0；错误指出路径段必须非空。 | UT-053 |
+| V4-PRJ-004 投影与失败回执 | P1 | M | 对成功、平台失败、自动翻页部分结果分别设置fields。 | 只投影data相对路径；错误和分页进度不会因fields消失；不得用投影隐藏outcome_unknown或partial。 | UT-017、UT-044、UT-052 |
+| V4-DOC-001 远程诊断显式范围 | P0 | L/M | 默认doctor、`doctor --schema S`、`doctor --remote`、`doctor --remote --schema S`逐项执行。 | 默认doctor零请求；schema不带remote及remote不带schema均退出2；只有完整组合发一次只读请求。 | UT-050 |
+| V4-DOC-002 状态分类与数据最小化 | P0 | M | M返回成功且含私有记录、Successful=false、异常协议、HTTP/网络错误。 | 回执不包含业务记录；scope固定为指定表单读取；成功仅表示本次读取被接受；失败状态区分平台/协议/HTTP/网络且不武断判定密钥无效。 | UT-050 |
+| V4-DOC-003 真实账号远程诊断 | P0 | R | 用获批账号对有权、无权和不存在表单分别执行remote doctor；不执行写操作。 | 有权表单成功；其他失败保留“凭据/编码/权限待核对”的有限结论；不得据单表成功宣称全租户权限有效。 | — |
+| V4-RATE-001 配置来源与边界 | P0 | L | config设150ms，环境设2s，CLI再设不同值；测试bad、-1s、0、60s、61s。 | CLI>环境>配置；有效范围0..60s；非法值在网络前拒绝；回执显示最终策略。 | UT-051、UT-056 |
+| V4-RATE-002 并发调用间隔 | P0 | M | 同一Client并发4个调用，min_interval=30ms，记录允许发送时刻。 | 四次起点串行间隔，总跨度至少90ms；不因并发绕过单客户端节流。 | UT-054 |
+| V4-RATE-003 取消节流等待 | P0 | M/F | 首次请求成功；第二个写请求在1分钟间隔等待时用20ms context取消。 | 及时返回CANCELED；第二请求未到服务端；outcome_unknown=false；取消不改变“不自动重试”策略。 | UT-054、UT-055 |
 
 ## 7. 现有自动测试索引
 
-以下 43 个函数来自当前源码。关联清单只提供入口，不声称其覆盖对应整条验收用例；平台专属系统行为仍按 OS 场景实测。
+以下 56 个函数来自当前源码。关联清单只提供入口，不声称其覆盖对应整条验收用例；平台专属系统行为仍按 OS 场景实测。
 
 | 编号 | 文件 | 测试函数 |
 |---|---|---|
@@ -491,6 +534,19 @@ F-RAW 示例（只用于 M/dry-run，R必须替换真实编码和 ID）：
 | UT-041 | [internal/auth/keychain_crypto_test.go](internal/auth/keychain_crypto_test.go) | `TestKeychainCipherIsolationTamperingAndLongTokens` |
 | UT-042 | [internal/auth/keychain_crypto_test.go](internal/auth/keychain_crypto_test.go) | `TestKeychainFailureDoesNotFallbackOrReplaceKeys` |
 | UT-043 | [internal/localstate/files_test.go](internal/localstate/files_test.go) | `TestLockAndReplace` |
+| UT-044 | [internal/cli/bulk_test.go](internal/cli/bulk_test.go) | `TestListAllBoundedAndPartial` |
+| UT-045 | [internal/cli/bulk_test.go](internal/cli/bulk_test.go) | `TestListAllAggregateLimit` |
+| UT-046 | [internal/cli/bulk_test.go](internal/cli/bulk_test.go) | `TestUpdateManyProgressAndUnknown` |
+| UT-047 | [internal/cli/bulk_test.go](internal/cli/bulk_test.go) | `TestBulkValidationDryRunAndReadOnly` |
+| UT-048 | [internal/cli/metadata_test.go](internal/cli/metadata_test.go) | `TestSchemaFieldsRequiresVerifiedReadOnlyMapping` |
+| UT-049 | [internal/cli/metadata_test.go](internal/cli/metadata_test.go) | `TestSchemaFieldsWireAndSuccessCondition` |
+| UT-050 | [internal/cli/metadata_test.go](internal/cli/metadata_test.go) | `TestDoctorRemoteScopeAndRedaction` |
+| UT-051 | [internal/cli/metadata_test.go](internal/cli/metadata_test.go) | `TestMinIntervalConfigAndOverride` |
+| UT-052 | [internal/cli/projection_test.go](internal/cli/projection_test.go) | `TestNestedProjection` |
+| UT-053 | [internal/cli/projection_test.go](internal/cli/projection_test.go) | `TestProjectionValidationPreventsExecution` |
+| UT-054 | [pkg/h3yun/pacing_test.go](pkg/h3yun/pacing_test.go) | `TestPacingConcurrentStartsAndCancellation` |
+| UT-055 | [pkg/h3yun/pacing_test.go](pkg/h3yun/pacing_test.go) | `TestPacingCanceledWriteNeverSent` |
+| UT-056 | [pkg/h3yun/pacing_test.go](pkg/h3yun/pacing_test.go) | `TestPacingConfigurationBounds` |
 
 ### 7.1 自动回归运行方法
 
@@ -516,7 +572,7 @@ Keychain 单测的通过只说明模拟存储/加密逻辑通过，不表示真�
 | LoadBizObjects | records list | REC-002～004、E2E-001 |
 | CreateBizObject | records create | REC-005～006、E2E-001/003 |
 | CreateBizObjects | records create-many | REC-007～010、E2E-003 |
-| UpdateBizObject | records update | REC-011、E2E-001 |
+| UpdateBizObject | records update / records update-many（逐条串行） | REC-011、V4-BUL-001～007、E2E-001 |
 | RemoveBizObject | records delete | REC-012、E2E-001 |
 | UploadAttachment | files upload | FIL-001～006、E2E-002 |
 | DownloadBizObjectFile | files download | FIL-007～012/014、E2E-002 |
@@ -560,7 +616,7 @@ Keychain 单测的通过只说明模拟存储/加密逻辑通过，不表示真�
 
 - 相关范围内P0全部实测通过；不能有未解决的凭据泄漏、越权、误删、静默覆盖、重复写入或数据损坏。
 - P1失败逐项评审并披露；需真实平台才能验证的项目不得以“单元测试通过”豁免。
-- 43个既有自动函数全部通过，静态检查、依赖校验、架构与许可证检查通过；修改源码后重新跑，不能沿用旧结果。
+- 56个现有自动函数全部通过，静态检查、依赖校验、架构与许可证检查通过；修改源码后重新跑，不能沿用旧结果。
 - 宣称支持某系统时，至少该系统对应原生发行物烟测通过；Mac还需Keychain和浏览器验收。仅交叉编译应标“待真机验证”。
 - 真实表单/附件/权限路径完成E2E验收，才可对该租户场景宣称已联调。
 - 如仅发布EngineCode/EngineSecret模式，可明确排除未接通的OAuth/扫码功能；但不得宣传已支持氚云直接扫码授权。
@@ -576,16 +632,16 @@ Keychain 单测的通过只说明模拟存储/加密逻辑通过，不表示真�
 | S2 重要缺陷 | 边界值、诊断信息、恢复路径异常 | 评审风险与范围；明确修复或限制 |
 | S3 体验问题 | 本地命令慢、提示不清楚 | 记录基线，安排优化 |
 
-修复后至少重跑失败用例全部变体、相邻模块P0、43个既有自动测试及受影响平台烟测。涉及传输、鉴权、存储的改动，不只复测“正常成功”路径。
+修复后至少重跑失败用例全部变体、相邻模块P0、56个既有自动测试及受影响平台烟测。涉及传输、鉴权、存储的改动，不只复测“正常成功”路径。
 
 ## 10. 当前待验收重点
 
-1. 真实氚云账号的8个标准API及提交/自动化副作用。
+1. 真实氚云账号的8个标准API、`records list --all`、`records update-many`及提交/自动化副作用。
 2. Mac arm64、Mac amd64、Linux原生运行；Mac真实Keychain授权拒绝/锁定/登出行为。
 3. 提供方和网关齐备后的真实浏览器扫码；目前不可宣称氚云公有云直连扫码已接通。
-4. 已部署控制器的审批、组织、表单管理逐动作权限和状态验收。
+4. 已部署控制器的字段元数据、审批、组织、表单管理逐动作权限和状态验收。
 5. 超限输入、下载发布竞态、外部配置修改、进程中断等尚需扩展夹具的场景。
-6. Agent宿主的跨进程限流与未知写入结果核对；CLI本身不负责自动限流或重试。
+6. Agent宿主的跨进程限流与未知写入结果核对；CLI只做单客户端最小请求间隔，不负责跨进程限流或自动重试。
 
 以上为待验证事项，不代表已观察到缺陷；也不能因缺环境而默认通过。
 

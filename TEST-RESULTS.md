@@ -1,3 +1,60 @@
+# TEST-RESULTS v0.4.0 — QA-20261020-001 工作区验证记录
+
+执行日期：2026-10-20（北京时间）。执行环境：Windows 11 amd64、Go 1.27.2。
+源码定位：基于 commit `570aed9` 的 v0.4.0 未提交工作区快照；这不是最终发布 commit，也不是 GitHub Release 发行物验证。
+关联用例：[TEST-CASES.md](TEST-CASES.md)。本节只记录本轮实际执行结果；未执行的真实账号、目标系统和发行物项目保持 NOT_RUN。
+
+## 1. 本轮已执行检查
+
+| 检查 | 状态 | 实测结果 |
+|---|---|---|
+| `go test ./... -count=1 -cover` | **PASS** | exit 0；56 个测试函数及其表驱动子用例通过 |
+| `go vet ./...` | **PASS** | exit 0 |
+| `go mod verify` | **PASS** | exit 0；`all modules verified` |
+| `govulncheck v1.9.0 ./...` | **PASS** | Go 1.27.2；漏洞库更新时间 2026-10-20 00:20:56 UTC；`No vulnerabilities found.` |
+| `actionlint v1.7.12` | **PASS** | exit 0；GitHub Actions 工作流无诊断 |
+| skill-creator `quick_validate.py` | **PASS** | h3yun-shared、h3yun-records、h3yun-files 均有效 |
+| 四平台 CGO=0 交叉构建 | **PASS** | Windows amd64、Linux amd64、macOS arm64/amd64 均成功；Windows 程序返回 version=0.4.0 |
+| 本地打包与 SHA-256 | **PASS** | 生成源码 ZIP、Windows ZIP、Linux/macOS 包及 SHA256SUMS；macOS tar 内程序权限为 0755，新文档与 skills 已包含 |
+| internal/cli 覆盖率 | 记录 | 87.9% statements |
+| pkg/h3yun 覆盖率 | 记录 | 84.2% statements |
+| internal/auth 覆盖率 | 记录 | 73.4% statements |
+| internal/localstate 覆盖率 | 记录 | 83.3% statements |
+| cmd/h3yun、scripts/package 覆盖率 | 记录 | 0.0%；不隐去未覆盖入口 |
+
+## 2. v0.4.0 新增自动回归
+
+以下结果均来自本地逻辑或绑定回环地址的 `httptest` 服务，使用假凭据；不代表真实氚云租户已联调。
+
+| 范围 | 状态 | 本轮实际覆盖 |
+|---|---|---|
+| 显式自动翻页 | **PASS** | 上限约束、Filter保留、末页缩小、短页/max停止、API/HTTP/协议/超页失败后的部分结果与next_offset、64MiB聚合上限 |
+| 串行批量更新 | **PASS** | 成功顺序、大整数保真、业务失败failed_ids、HTTP/协议失败unknown_ids、取消后unprocessed_ids、dry-run及只读策略 |
+| 字段元数据 | **PASS** | 缺映射、write映射、保留参数、额外required、已配置控制器线形、metadata_source及自定义业务成功条件 |
+| 远程诊断 | **PASS** | 必须显式remote+schema；成功/平台失败/协议失败分类；不回显读取到的私有记录；scope限定为指定表单读取 |
+| 点路径投影 | **PASS** | 嵌套对象、数组逐项、字面点号键、父级优先及非法路径在执行前拒绝 |
+| 请求起点间隔 | **PASS** | 配置/环境覆盖与0..60s边界；同Client并发请求间隔；等待取消；取消的写请求未发送且outcome_unknown=false |
+
+对应新增测试函数为 UT-044～UT-056。这里的 PASS 表示这些自动测试函数通过，不把它们自动换算成 29 条 V4 验收用例全部 PASS。
+
+## 3. 明确未执行
+
+| 项目 | 状态 | 原因/后续证据 |
+|---|---|---|
+| 真实氚云标准API读写、`--all`、`update-many` | **NOT_RUN** | 本轮未提供已授权测试租户、表单与真实凭据 |
+| 已部署字段元数据控制器 | **NOT_RUN** | 未提供真实action/controller/app_code及字段契约，不能用模拟响应证明准确性 |
+| `doctor --remote` 真实权限判定 | **NOT_RUN** | 只完成假服务分类测试；真实账号的有权/无权/不存在表单组合待测 |
+| Windows最终发行程序、macOS/Linux真机 | **NOT_RUN** | 本轮执行对象是源码工作区，不是最终包；未在目标系统运行 |
+| Linux race detector | **NOT_RUN** | Windows 本地未运行；由 GitHub Linux CI 执行 |
+| 最终提交/标签发行物复验 | **NOT_RUN** | 本轮构建来自未提交工作区，VCS metadata 正确显示 modified=true；须在最终提交和标签上重跑并要求 modified=false |
+| 169条验收用例逐条执行 | **NOT_RUN** | 自动关联不等于完整验收；R/OS/F变体仍按TEST-CASES执行 |
+
+## 4. 本轮结论
+
+v0.4.0 新增代码在当前 Windows 工作区通过单元/模拟服务回归、静态检查和依赖完整性检查；本轮未发现自动回归失败。发布结论仍取决于最终 commit 的CI、构建/打包/校验和，以及真实氚云测试租户和目标系统验收。没有真实账号测试证据，因此不能宣称字段发现、远程诊断、批量更新或自动翻页已在氚云线上验证。
+
+---
+
 # TEST-RESULTS v0.3.0 — QA-20261016-001 历史执行记录
 
 执行日期：2026-10-16（北京时间）。执行环境：Windows 11 amd64、Go 1.27.0、bash（PortableGit）。

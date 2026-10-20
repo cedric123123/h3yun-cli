@@ -27,6 +27,16 @@ func leaf(spec Command, compact bool) map[string]any {
 	if spec.Name == "records list" {
 		constraints["mutually_exclusive"] = [][]string{{"filter", "offset"}, {"filter", "limit"}, {"filter", "count"}}
 		constraints["limit"] = map[string]int{"minimum": 1, "maximum": 500}
+		constraints["all_requires"] = "explicit --max 1..100000; aggregate rows <= 64 MiB; min interval 700ms; stop on error; not a snapshot"
+	}
+	if spec.Name == "records update-many" {
+		constraints["batch"] = "1..500 unique {id,data} items; serial UpdateBizObject; non-atomic; stop on first error; min interval 700ms; no retry"
+	}
+	if spec.Name == "schema fields" {
+		constraints["requires"] = "verified deployed read-only operations mapping; default name schema.fields, parameter SchemaCode; not a native OpenAPI"
+	}
+	if spec.Name == "doctor" {
+		constraints["remote_requires"] = "explicit --schema; one read request; proves only this form's read access; business rows omitted"
 	}
 	if spec.Name == "api invoke" {
 		confirmation = "conditional_remove_requires_yes"
@@ -183,12 +193,20 @@ func globalArgs(args []string) ([]string, map[string]string, error) {
 	if f := global["format"]; f != "" && f != "json" && f != "pretty" {
 		return nil, nil, h3yun.Fail("USAGE", "supported formats: json, pretty", 2)
 	}
+	if value, exists := global["min-interval"]; exists && strings.TrimSpace(value) == "" {
+		return nil, nil, h3yun.Fail("USAGE", "min-interval must not be blank", 2)
+	}
+	if fields, exists := global["fields"]; exists {
+		if _, err := projectionPaths(fields); err != nil {
+			return nil, nil, err
+		}
+	}
 	return remaining, global, nil
 }
 
 func globalEnv(global map[string]string, env func(string) string) func(string) string {
 	overrides := map[string]string{}
-	for key, name := range map[string]string{"config": "H3YUN_CONFIG", "profile": "H3YUN_PROFILE", "timeout": "H3YUN_TIMEOUT"} {
+	for key, name := range map[string]string{"config": "H3YUN_CONFIG", "profile": "H3YUN_PROFILE", "timeout": "H3YUN_TIMEOUT", "min-interval": "H3YUN_MIN_INTERVAL"} {
 		if value, ok := global[key]; ok {
 			overrides[name] = value
 		}

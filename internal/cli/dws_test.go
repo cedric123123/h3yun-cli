@@ -37,7 +37,7 @@ func TestProgressiveSchema(t *testing.T) {
 		}
 	}
 	code, result, raw := invoke(t, []string{"schema", "records", "--compact"}, "", nil)
-	if code != 0 || len(result["data"].(map[string]any)["commands"].([]any)) != 6 {
+	if code != 0 || len(result["data"].(map[string]any)["commands"].([]any)) != 7 {
 		t.Fatal(raw)
 	}
 	code, _, raw = invoke(t, []string{"schema", "--all"}, "", nil)

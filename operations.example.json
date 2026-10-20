@@ -1,9 +1,17 @@
 {
+  "schema.fields": {
+    "action": "REPLACE_WITH_VERIFIED_FIELDS_ACTION",
+    "controller": "REPLACE_WITH_DEPLOYED_METADATA_CONTROLLER",
+    "app_code": "REPLACE_WITH_APP_CODE",
+    "description": "示例占位映射：用于已部署的只读字段元数据控制器；不是氚云原生 OpenAPI",
+    "read_only": true,
+    "required": ["SchemaCode"]
+  },
   "workflow.get": {
     "action": "REPLACE_WITH_VERIFIED_READ_ACTION",
     "controller": "REPLACE_WITH_DEPLOYED_CONTROLLER",
     "app_code": "REPLACE_WITH_APP_CODE",
-    "description": "示例占位映射：需核对私有版控制器后修改；不是内置氚云接口",
+    "description": "示例占位映射：需按实际部署控制器修改；不是内置氚云接口",
     "read_only": true,
     "required": ["workflowId"]
   },
