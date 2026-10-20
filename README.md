@@ -12,6 +12,8 @@ v0.3.0 首批吸纳：借鉴 DWS 交互，独立实现 `profile switch`（预览
 
 v0.3.1 安全加固：发布程序改用 Go 1.27.2 构建，修复公开模块路径，增加可追溯 commit、三平台 CI、漏洞扫描、标准平台包及校验和。
 
+v0.4.0 面向 Agent 的长任务增强：新增显式有界的 `records list --all --max`、串行 `records update-many`、点路径 `--fields`、同一客户端请求间隔，以及按指定表单执行一次只读探测的 `doctor --remote`。字段发现通过使用者已部署并映射为只读的自定义控制器接入，不伪装成原生 OpenAPI。完整取舍见 [改进评估](IMPROVEMENTS.md)。
+
 ## 安装
 
 推荐从 [GitHub Releases](https://github.com/cedric123123/h3yun-cli/releases/latest) 下载对应系统的软件包，并用同一 Release 中的 `SHA256SUMS` 校验。源码仓库不提交 `dist/` 二进制目录。
@@ -56,7 +58,7 @@ h3yun doctor
 h3yun records list --schema YOUR_SCHEMA --limit 100
 ```
 
-`auth status` 只检查本地凭据/会话；`doctor` 检查配置和 CA，均不验证真实权限。CLI 不读取 `.env`，不接受命令行 EngineSecret，不保存环境变量密钥。
+`auth status` 只检查本地凭据/会话；默认 `doctor` 只检查配置和 CA，均不验证真实权限。只有显式的 `doctor --remote --schema CODE` 才联网，且作用域仅为该表单本次只读探测。CLI 不读取 `.env`，不接受命令行 EngineSecret，不保存环境变量密钥。
 
 **已实现浏览器 OAuth + PKCE 登录模块，但目前未核实到氚云公有云 OpenAPI 提供扫码 OAuth 端点。** DWS 的令牌和氚云网页登录 Cookie 不能当作 OpenAPI 凭据。默认配置执行 `auth login` 会返回 `AUTH_NOT_CONFIGURED`，不会误报扫码登录成功。
 
@@ -71,11 +73,12 @@ h3yun records list --schema YOUR_SCHEMA --limit 100
 | `--profile NAME` | 本次环境，不修改默认 profile |
 | `--config PATH` | 不含密钥的配置文件 |
 | `--timeout 30s` | HTTP 超时，默认 45s，最大 60s；与浏览器等待授权时限不同 |
-| `--fields parameters,effect` | 筛选 data 顶层对象字段，保留 ok/error/meta；非对象数据不裁剪 |
+| `--fields ReturnData.BizObjectArray.ObjectId` | 筛选 `data` 内的逗号分隔点路径，保留嵌套结构及 ok/error/meta；数组逐项投影，非对象 data 不裁剪 |
 | `--dry-run` | 放在业务命令后；不联网、不要求密钥 |
 | `--help` | 放在具体命令后，返回该命令完整契约 |
+| `--min-interval 700ms` | 同一 CLI 客户端的请求起点最小间隔，0s..60s；不协调其他进程 |
 
-format/profile/config/timeout/fields/pretty 可置于命令前、中、后。布尔参数用 `--submit` 或 `--submit=false`。不支持 `--jq`、table/csv/ndjson 等格式时明确报错，不假装兼容整个 DWS。
+format/profile/config/timeout/min-interval/fields/pretty 可置于命令前、中、后。布尔参数用 `--submit` 或 `--submit=false`。点路径不能包含空段；若 `data` 顶层恰有包含点号的同名键，优先保留该完整键。不支持 `--jq`、table/csv/ndjson 等格式时明确报错，不假装兼容整个 DWS。
 
 与 DWS 不同：为保持 v0.1 兼容，成功和失败均输出到 stdout 的 `ok/data/error/meta` envelope；不是 DWS 原样 payload/stderr 错误协议。浏览器登录 `--no-browser` 仅将临时授权 URL 写入 stderr。
 
@@ -107,23 +110,26 @@ h3yun profile switch --config profiles.json --name -
 
 | 命令 | 能力 |
 |---|---|
-| records get / list | 单条、批量查询；单页最多 500 条 |
+| schema fields | 通过已配置的只读自定义控制器查询字段元数据 |
+| records get / list | 单条、批量查询；单页最多 500 条，可显式有界自动翻页 |
 | records create / create-many | 单条、批量创建；默认草稿，--submit 生效 |
-| records update / delete | 更新、删除；删除执行需 --yes |
+| records update / update-many / delete | 单条更新、串行逐条更新、删除；删除执行需 --yes |
 | files upload / download | 附件上传下载，支持子表参数 |
 | custom invoke / api invoke | 已部署控制器、原始 OpenAPI 包体 |
 | ops list / run | 将自定义接口映射为命名业务操作 |
 | profile list / show / switch | 本地环境发现、查看、持久切换及切回 |
 | auth login / status / logout | 可配置浏览器授权、本地状态、清除所选会话 |
-| doctor | 本地配置检查 |
+| doctor | 默认本地配置检查；可对指定表单执行一次远程只读探测 |
 
 ```powershell
 h3yun records get --schema YOUR_SCHEMA --id RECORD_ID
 h3yun records list --schema YOUR_SCHEMA --offset 0 --limit 100 --count
 h3yun records list --schema YOUR_SCHEMA --filter '@examples/filter.json'
+h3yun records list --schema YOUR_SCHEMA --limit 500 --all --max 5000
 h3yun records create --schema YOUR_SCHEMA --data '@examples/record.json'
 h3yun records create-many --schema YOUR_SCHEMA --data '@examples/records.json' --submit
 h3yun records update --schema YOUR_SCHEMA --id RECORD_ID --data '@examples/record.json'
+h3yun records update-many --schema YOUR_SCHEMA --data '@updates.json'
 h3yun records delete --schema YOUR_SCHEMA --id RECORD_ID --dry-run
 h3yun records delete --schema YOUR_SCHEMA --id RECORD_ID --yes
 h3yun files upload --schema YOUR_SCHEMA --id RECORD_ID --field FILE_FIELD --file 'C:\data\合同.pdf'
@@ -132,11 +138,13 @@ h3yun files download --attachment-id ATTACHMENT_ID --output 'C:\data\新下载�
 
 JSON 参数支持 @文件、- 标准输入、内联 JSON。支持 UTF-8 BOM，数字转发不丢精度，输入上限 16 MiB。表单编码和字段需由真实表单提供。Filter/BizObject 自动转成平台 JSON 字符串，批量记录转字符串数组。
 
-列表不自动翻页，参考 meta.pagination.next_offset/has_more_possible；满页只能表示可能还有数据。--filter 与 offset/limit/count 互斥。更新记录不等同于审批或提交已有草稿。
+列表默认仍只请求一页，参考 `meta.pagination.next_offset/has_more_possible`；满页只能表示可能还有数据。只有同时提供 `--all --max 1..100000` 才连续翻页，页大小仍为 1..500，累计序列化记录不得超过 64 MiB，请求起点间隔至少 700ms，任何一页失败即停止且不重试。返回会保留已完成页、失败响应（如有）、`next_offset`、`partial` 和停止原因；首个成功页中除记录数组外的 ReturnData 元数据（如平台返回的计数）也会保留。到达 `--max` 不代表数据已读完。连续翻页不是一致性快照，源数据同时变化时可能重复或遗漏，重要任务应使用稳定排序并自行校验。`--filter` 与 offset/limit/count 互斥。更新记录不等同于审批或提交已有草稿。
 
 单条 `records create --submit` 在流程表单中推进到下一审批节点；批量 `records create-many --submit` 直接创建生效数据，不可替代批量发起审批。创建/更新/删除可能触发自动化和业务规则，执行及 dry-run 的 `meta.warnings` 会提示这些影响。批量建议每批不超过 500 条（建议而非服务端硬上限），复杂数据应减小批次；CLI 不自动拆分或重放。
 
-调用方应协调同一集成的所有 Agent/进程，将请求控制在文档所述每秒 1–2 次；CLI 当前没有跨进程限流器。查询返回的人/部门补充字段不要原样写回；CLI 不掌握表单元数据，不擅自删除或转换自定义字段。
+`records update-many` 输入 1..500 个唯一的 `{ "id": "...", "data": {...} }`，按顺序调用单条 `UpdateBizObject`，至少间隔 700ms，失败即停且不重试。它不是服务端原子批量事务；结果分别列出 `succeeded_ids`、`failed_ids`、`unknown_ids` 和 `unprocessed_ids`。`unknown_ids` 表示请求结果无法确认，必须先查询业务状态；不要整批重放。
+
+调用方仍应协调同一集成的所有 Agent/进程，将请求控制在文档所述每秒 1–2 次。`min_interval`、`H3YUN_MIN_INTERVAL` 或 `--min-interval` 只约束当前 CLI 客户端；`--all` 和 `update-many` 会将低于 700ms 的值提升到 700ms，没有跨进程限流器。查询返回的人/部门补充字段不要原样写回；CLI 不擅自删除或转换自定义字段。
 
 附件上传最大 10 MiB。下载不覆盖已有文件，先临时保存再硬链接发布，支持 NTFS/ext4，不支持 FAT/exFAT；父目录需存在，上限 1 GiB。响应缺少 Content-Disposition 时拒绝保存。失败清理临时文件。
 
@@ -154,9 +162,20 @@ h3yun ops run --name workflow.approve --data '@approval.json' --dry-run
 
 命名操作支持 required 参数和 success_field/success_value，匹配 ReturnData 的直接子字段。未部署控制器时不能宣称审批可用。本项目未部署任何服务端业务代码。
 
+字段元数据同样不是已核实的原生公共 OpenAPI。使用者可将已部署的只读控制器配置为 operations 文件中的 `schema.fields`，再执行：
+
+```powershell
+h3yun schema fields --schema YOUR_SCHEMA
+h3yun schema fields --schema YOUR_SCHEMA --schema-param FormCode
+```
+
+CLI 只验证映射存在且 `read_only=true`，按映射路由并原样保留控制器响应；字段编码、名称、类型、必填和选项等结构由真实控制器契约决定。占位映射会被拒绝。配置和验收方法见 [METADATA.md](METADATA.md)。
+
+`h3yun doctor` 默认仍完全在本地运行。只有显式执行 `h3yun doctor --remote --schema YOUR_SCHEMA` 才发送一次最多读取一条记录的请求；输出不包含业务记录。成功仅证明本次凭据对该表单的读取被接受，不证明全局权限、写权限、审批权限或凭据长期有效。
+
 ## Agent 与验证
 
-退出码：0 成功，2 输入，3 配置/授权/策略，4 网络/协议，5 平台业务失败，6 本地输出。错误提供 code/message/retryable，适用时含 hint/actions/outcome_unknown。不自动重试；结果未知的写入先核实，批量失败保留部分成功数据。
+退出码：0 成功，2 输入，3 配置/授权/策略，4 网络/协议，5 平台业务失败，6 本地输出或聚合上限。错误提供 code/message/retryable，适用时含 hint/actions/outcome_unknown。不自动重试；结果未知的写入先核实，批量失败保留部分成功数据。
 
 随包提供 skills/h3yun-shared、skills/h3yun-records、skills/h3yun-files，由使用者复制到 Agent 的 skills 目录。本次未全局安装。技能参考 DWS 渐进发现习惯，按 skill-creator 规范组织。详见 [AGENT.md](AGENT.md)。
 

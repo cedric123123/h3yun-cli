@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/cedric123123/h3yun-cli/pkg/h3yun"
 )
@@ -55,7 +56,8 @@ func parse(spec Command, args []string) (values, error) {
 	for _, f := range append(append([]Flag{}, spec.Flags...), commonFlags()...) {
 		switch f.Type {
 		case "string":
-			v.strings[f.Name] = fs.String(f.Name, "", f.Description)
+			d, _ := f.Default.(string)
+			v.strings[f.Name] = fs.String(f.Name, d, f.Description)
 		case "boolean":
 			v.bools[f.Name] = fs.Bool(f.Name, false, f.Description)
 		case "integer":
@@ -214,7 +216,10 @@ func run(ctx context.Context, command string, v values, stdin io.Reader, env fun
 		cfg.AccessToken = session.AccessToken
 		rememberSecret(ctx, session.AccessToken)
 	}
-	if command == "doctor" {
+	if command == "doctor" && !v.b("remote") {
+		if v.set["schema"] {
+			return nil, h3yun.Fail("USAGE", "doctor --schema requires --remote", 2)
+		}
 		if v.b("dry-run") {
 			meta["dry_run"] = true
 			if cfg.BaseURL != "" {
@@ -237,7 +242,37 @@ func run(ctx context.Context, command string, v values, stdin io.Reader, env fun
 	var filter map[string]any
 	var fields url.Values
 	var operation *Operation
+	var batch []updateItem
+	if (command == "records list" && v.b("all")) || command == "records update-many" {
+		if cfg.MinInterval < 700*time.Millisecond {
+			cfg.MinInterval = 700 * time.Millisecond
+		}
+	}
+	meta["request_policy"] = map[string]any{"min_interval": cfg.MinInterval.String(), "scope": "client_instance", "automatic_retries": 0}
 	switch command {
+	case "schema fields":
+		body, operation, err = metadataRequest(v, s)
+		if err != nil {
+			return nil, err
+		}
+		write = false
+		meta["metadata_source"] = "configured_custom_controller"
+	case "doctor":
+		if strings.TrimSpace(v.s("schema")) == "" {
+			return nil, h3yun.Fail("USAGE", "doctor --remote requires --schema", 2)
+		}
+		write = false
+		body = map[string]any{"ActionName": "LoadBizObjects", "SchemaCode": v.s("schema"), "Filter": encoded(map[string]any{"FromRowNum": 0, "ToRowNum": 1, "RequireCount": false, "ReturnItems": []any{}, "SortByCollection": []any{}, "Matcher": map[string]any{"Type": "And", "Matchers": []any{}}})}
+	case "records update-many":
+		batch, err = parseUpdates(v.s("data"), stdin)
+		if err != nil {
+			return nil, err
+		}
+		requests := make([]any, 0, len(batch))
+		for _, item := range batch {
+			requests = append(requests, updateRequest(v.s("schema"), item))
+		}
+		body = map[string]any{"ActionName": "UpdateBizObject", "requests": requests, "atomic": false, "stop_on_error": true}
 	case "records get", "records delete":
 		action := "LoadBizObject"
 		write = false
@@ -247,9 +282,22 @@ func run(ctx context.Context, command string, v values, stdin io.Reader, env fun
 		}
 		body = map[string]any{"ActionName": action, "SchemaCode": v.s("schema"), "BizObjectId": v.s("id")}
 	case "records list":
+		if (v.b("all") && (!v.set["max"] || v.n("max") < 1 || v.n("max") > 100000)) || (!v.b("all") && v.set["max"]) {
+			return nil, h3yun.Fail("USAGE", "--all requires --max 1..100000; --max requires --all", 2)
+		}
 		filter, err = makeFilter(v, stdin)
 		if err != nil {
 			return nil, err
+		}
+		if v.b("all") {
+			from, _ := integer(filter["FromRowNum"])
+			to, _ := integer(filter["ToRowNum"])
+			pageSize := to - from
+			if pageSize > v.n("max") {
+				filter["ToRowNum"] = from + v.n("max")
+				pageSize = v.n("max")
+			}
+			meta["pagination_plan"] = map[string]any{"max": v.n("max"), "page_size": pageSize, "max_bytes": maxAggregateBytes, "stop_on_error": true, "snapshot": false}
 		}
 		write = false
 		body = map[string]any{"ActionName": "LoadBizObjects", "SchemaCode": v.s("schema"), "Filter": encoded(filter)}
@@ -369,6 +417,12 @@ func run(ctx context.Context, command string, v values, stdin io.Reader, env fun
 		return nil, err
 	}
 	defer c.Close()
+	if command == "records update-many" {
+		return updateMany(ctx, c, v.s("schema"), batch, meta)
+	}
+	if command == "records list" && v.b("all") {
+		return listAll(ctx, c, v.s("schema"), filter, v.n("max"), meta)
+	}
 	if command == "files upload" {
 		return c.Upload(ctx, v.s("file"), fields)
 	}
@@ -376,6 +430,9 @@ func run(ctx context.Context, command string, v values, stdin io.Reader, env fun
 		return c.Download(ctx, v.s("attachment-id"), v.s("output"))
 	}
 	result, err := c.Invoke(ctx, body, write)
+	if command == "doctor" {
+		return remoteDiagnosis(result, err, v.s("schema"))
+	}
 	if err == nil && operation != nil && operation.SuccessField != "" {
 		returned, _ := result["ReturnData"].(map[string]any)
 		value, exists := returned[operation.SuccessField]
@@ -407,7 +464,7 @@ func Run(ctx context.Context, args []string, stdin io.Reader, stdout io.Writer, 
 	env = func(key string) string {
 		value := originalEnv(key)
 		switch key {
-		case "H3YUN_CONFIG", "H3YUN_PROFILE", "H3YUN_TIMEOUT", "H3YUN_BASE_URL", "H3YUN_CA_CERT", "H3YUN_OPERATIONS", "H3YUN_ALLOW_HTTP", "H3YUN_READ_ONLY", "H3YUN_AUTH_DIR":
+		case "H3YUN_CONFIG", "H3YUN_PROFILE", "H3YUN_TIMEOUT", "H3YUN_MIN_INTERVAL", "H3YUN_BASE_URL", "H3YUN_CA_CERT", "H3YUN_OPERATIONS", "H3YUN_ALLOW_HTTP", "H3YUN_READ_ONLY", "H3YUN_AUTH_DIR":
 		default:
 			if value != "" {
 				secrets = append(secrets, value)
@@ -426,7 +483,7 @@ func Run(ctx context.Context, args []string, stdin io.Reader, stdout io.Writer, 
 	if len(args) > 0 {
 		command = args[0]
 	}
-	if len(args) > 1 && (command == "records" || command == "files" || command == "api" || command == "custom" || command == "ops" || command == "profile" || command == "auth") {
+	if len(args) > 1 && (command == "records" || command == "files" || command == "api" || command == "custom" || command == "ops" || command == "profile" || command == "auth" || (command == "schema" && args[1] == "fields")) {
 		command += " " + args[1]
 		args = append([]string{command}, args[2:]...)
 	}
@@ -510,14 +567,7 @@ func Run(ctx context.Context, args []string, stdin io.Reader, stdout io.Writer, 
 		root, _ := safe.(map[string]any)
 		object, ok := root["data"].(map[string]any)
 		if ok {
-			projected := map[string]any{}
-			for _, field := range strings.Split(fields, ",") {
-				field = strings.TrimSpace(field)
-				if value, exists := object[field]; exists {
-					projected[field] = value
-				}
-			}
-			root["data"] = projected
+			root["data"] = projectObject(object, fields)
 		}
 	}
 	var b []byte

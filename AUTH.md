@@ -1,6 +1,6 @@
 # 浏览器授权模块
 
-氚云公有云标准 OpenAPI 使用 EngineCode/EngineSecret。这里的 OAuth 模块是可选扩展，不是已核实的氚云公有云扫码入口。需要 OAuth 服务与 Bearer API 网关；项目不包含线上认证服务、二维码提供方或 OAuth 应用注册。
+氚云公有云标准 OpenAPI 使用 EngineCode/EngineSecret。这里的 OAuth 模块是可选扩展，不是已核实的氚云公有云扫码入口。需要 OAuth 服务与 Bearer API 网关；项目不包含线上认证服务、二维码提供方或 OAuth 应用注册。CLI、源码、示例配置和发行包均不内置实际凭据。
 
 ## 交互与协议
 
@@ -47,6 +47,12 @@ API base_url 必须指向接受 Bearer 的 API/网关。网关验证令牌、aud
 - 默认缓存位于系统用户配置目录的 h3yun/auth；可用 H3YUN_AUTH_DIR 指定。拒绝不安全权限及符号链接。
 - auth status 仅表示本地未过期会话，不证明服务端权限或撤销状态；OAuth 回执包含 storage_backend。读缓存失败的 reason 表示本地状态无法确认，不代表服务端已登出。logout 仅删除所选本地会话，以及 Mac 上对应的 Keychain 密钥，不撤销服务端令牌，不清除环境变量密钥。
 - 默认等待 5 分钟，--login-timeout 最大 30 分钟。扫码确认由使用者操作。
+
+## 本地状态与远程探测
+
+`auth status` 和默认 `doctor` 都是本地检查，不发起氚云业务请求。v0.4.0 提供的 `doctor --remote --schema CODE` 只对调用方明确指定的表单发出一次只读查询，最多请求一条且不输出业务记录。成功表示这次请求使用的凭据或 Bearer 会话被该表单读取接受，不表示凭据在其他表单、写入、审批或未来请求中有效；失败也不能仅凭一次平台拒绝判断是密钥、表单编码还是权限问题。
+
+远程探测不会保存环境变量中的 EngineCode/EngineSecret，不会把它们写入 profile、OAuth 缓存或 Keychain。静态 OpenAPI 凭据仍须由使用者或 Agent 宿主在进程环境中提供；profile 只保存环境变量名和非密钥设置。
 
 已用模拟服务验证回调、错误 state、PKCE、拒绝、超时、异常 token、重定向拒绝、缓存隔离、过期和清除；未连接真实扫码平台。
 

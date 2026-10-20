@@ -19,6 +19,7 @@ type Settings struct {
 	AllowHTTP       bool         `json:"allow_http,omitempty"`
 	ReadOnly        bool         `json:"read_only,omitempty"`
 	Timeout         string       `json:"timeout,omitempty"`
+	MinInterval     string       `json:"min_interval,omitempty"`
 	InvokePath      string       `json:"invoke_path,omitempty"`
 	UploadPath      string       `json:"upload_path,omitempty"`
 	DownloadPath    string       `json:"download_path,omitempty"`
@@ -127,8 +128,8 @@ func settings(path string, env func(string) string) (Settings, h3yun.Config, err
 	if s.EngineSecretEnv == "" && s.OAuth == nil {
 		s.EngineSecretEnv = "H3YUN_ENGINE_SECRET"
 	}
-	for name, dest := range map[string]*string{"H3YUN_BASE_URL": &s.BaseURL, "H3YUN_CA_CERT": &s.CACert, "H3YUN_TIMEOUT": &s.Timeout, "H3YUN_OPERATIONS": &s.OperationsFile} {
-		if profile != "" && name != "H3YUN_TIMEOUT" {
+	for name, dest := range map[string]*string{"H3YUN_BASE_URL": &s.BaseURL, "H3YUN_CA_CERT": &s.CACert, "H3YUN_TIMEOUT": &s.Timeout, "H3YUN_MIN_INTERVAL": &s.MinInterval, "H3YUN_OPERATIONS": &s.OperationsFile} {
+		if profile != "" && name != "H3YUN_TIMEOUT" && name != "H3YUN_MIN_INTERVAL" {
 			continue
 		}
 		if v := env(name); v != "" {
@@ -162,6 +163,13 @@ func settings(path string, env func(string) string) (Settings, h3yun.Config, err
 		return s, h3yun.Config{}, h3yun.Fail("CONFIG", "timeout must be positive and at most 60s", 3)
 	}
 	cfg := h3yun.Config{BaseURL: s.BaseURL, EngineCode: env(s.EngineCodeEnv), EngineSecret: env(s.EngineSecretEnv), CACert: s.CACert, AllowHTTP: s.AllowHTTP, Timeout: timeout, InvokePath: s.InvokePath, UploadPath: s.UploadPath, DownloadPath: s.DownloadPath}
+	if s.MinInterval != "" {
+		interval, err := time.ParseDuration(s.MinInterval)
+		if err != nil || interval < 0 || interval > time.Minute {
+			return s, cfg, h3yun.Fail("CONFIG", "min_interval must be between 0s and 60s", 3)
+		}
+		cfg.MinInterval = interval
+	}
 	return s, cfg, nil
 }
 

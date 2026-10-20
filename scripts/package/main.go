@@ -32,7 +32,7 @@ func main() {
 	}
 	check(os.MkdirAll(out, 0755))
 	files := []string{}
-	rootFiles := map[string]bool{"README.md": true, "AGENT.md": true, "AUTH.md": true, "MACOS.md": true, "VALIDATION.md": true, "API-CONTRACT.md": true, "TEST-CASES.md": true, "TEST-RESULTS.md": true, "SECURITY.md": true, "CONTRIBUTING.md": true, "LICENSE": true, "THIRD_PARTY_NOTICES.md": true, "go.mod": true, "go.sum": true, ".gitignore": true, "config.example.json": true, "profiles.example.json": true, "operations.example.json": true}
+	rootFiles := map[string]bool{"README.md": true, "AGENT.md": true, "AUTH.md": true, "MACOS.md": true, "VALIDATION.md": true, "API-CONTRACT.md": true, "METADATA.md": true, "IMPROVEMENTS.md": true, "TEST-CASES.md": true, "TEST-RESULTS.md": true, "SECURITY.md": true, "CONTRIBUTING.md": true, "LICENSE": true, "THIRD_PARTY_NOTICES.md": true, "go.mod": true, "go.sum": true, ".gitignore": true, "config.example.json": true, "profiles.example.json": true, "operations.example.json": true}
 	dirs := map[string]bool{"cmd": true, "internal": true, "pkg": true, "scripts": true, "skills": true, "examples": true, "dist": true, "licenses": true}
 	check(filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -122,7 +122,7 @@ func makeZip(root, out string, files []string) (err error) {
 }
 
 func platformFiles(root, binary string) ([]string, error) {
-	names := []string{binary, "README.md", "MACOS.md", "AUTH.md", "AGENT.md", "VALIDATION.md", "API-CONTRACT.md", "TEST-CASES.md", "TEST-RESULTS.md", "SECURITY.md", "LICENSE", "THIRD_PARTY_NOTICES.md", "config.example.json", "profiles.example.json", "operations.example.json", "examples/record.json", "examples/records.json", "examples/filter.json", "skills/h3yun-shared/SKILL.md", "skills/h3yun-records/SKILL.md", "skills/h3yun-files/SKILL.md", "scripts/smoke.sh"}
+	names := []string{binary, "README.md", "MACOS.md", "AUTH.md", "AGENT.md", "VALIDATION.md", "API-CONTRACT.md", "METADATA.md", "IMPROVEMENTS.md", "TEST-CASES.md", "TEST-RESULTS.md", "SECURITY.md", "LICENSE", "THIRD_PARTY_NOTICES.md", "config.example.json", "profiles.example.json", "operations.example.json", "examples/record.json", "examples/records.json", "examples/filter.json", "skills/h3yun-shared/SKILL.md", "skills/h3yun-records/SKILL.md", "skills/h3yun-files/SKILL.md", "scripts/smoke.sh"}
 	licenseFiles, err := filepath.Glob(filepath.Join(root, "licenses", "*.txt"))
 	if err != nil {
 		return nil, err

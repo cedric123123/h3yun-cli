@@ -17,6 +17,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -24,7 +25,7 @@ const MaxJSON = 16 << 20
 const MaxUpload = 10 << 20
 const MaxTimeout = 60 * time.Second
 
-var Version = "0.3.1"
+var Version = "0.4.0"
 
 // Commit is injected by release builds so users can trace a binary back to source.
 var Commit = "unknown"
@@ -56,11 +57,14 @@ type Config struct {
 	InvokePath   string
 	UploadPath   string
 	DownloadPath string
+	MinInterval  time.Duration
 }
 
 type Client struct {
-	cfg  Config
-	http *http.Client
+	cfg         Config
+	http        *http.Client
+	paceMu      sync.Mutex
+	lastRequest time.Time
 }
 
 // Endpoint preserves a reverse-proxy base path and rejects URL credentials,
@@ -88,6 +92,9 @@ func Endpoint(base, path string, allowHTTP bool) (string, error) {
 }
 
 func New(cfg Config) (*Client, error) {
+	if cfg.MinInterval < 0 || cfg.MinInterval > time.Minute {
+		return nil, Fail("CONFIG", "min_interval must be between 0s and 60s", 3)
+	}
 	if cfg.AccessToken == "" && (cfg.EngineCode == "" || cfg.EngineSecret == "") {
 		return nil, Fail("AUTH_CONFIG", "set H3YUN_ENGINE_CODE and H3YUN_ENGINE_SECRET in the invoking process environment", 3)
 	}
@@ -144,6 +151,9 @@ func (c *Client) request(ctx context.Context, path, contentType string, body io.
 		req.Header.Set("EngineSecret", c.cfg.EngineSecret)
 	}
 	req.Header.Set("User-Agent", "h3yun-cli/"+Version)
+	if err := c.waitRequest(ctx); err != nil {
+		return nil, err
+	}
 	res, err := c.http.Do(req)
 	if err != nil {
 		return nil, &Error{Code: "TRANSPORT", Message: "request failed or timed out; check network, TLS and endpoint; writes are not retried", OutcomeUnknown: write, Exit: 4}
